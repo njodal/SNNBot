@@ -8,23 +8,7 @@ Have a simple bot (a la Braintenberg Vehicles) using neuromorphic sensors, brain
 ## Neuromorphic sensors
 Refers to sensor 'retina style': instead of taking images, it fire events (spikes) any time a change is sensed.
 
-Example: suppose an artificial eye with 3x3 cells, each cell can be empty (white) or busy (black):
-
-![Cell (2,1) occupied](docs/images/grid_3x3.png)
-
-If the eye goes from later status to this new one:
-
-![Cell (2,3) occupied](docs/images/grid_3x3_r2c3.png)
-
-Two events will be fired:
-
-- 2,1 off. (cell 2,1 changed from busy to empty)
-- 2,3 on   (cell 2,3 changed from empty to busy)
-
-Note order is important.
-
-The normative version of this definition — the event format, the element model
-and its parameters — is [spec 001](spec/001-neuromorphic-sensors.md).
+See [spec 001](spec/001-neuromorphic-sensors.md) for the full definition, the worked example and the event format.
 
 # Vehicle 1
 This vehicle has one eye (retina style)

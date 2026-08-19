@@ -12,8 +12,7 @@ what it means **for SNNBot**: it is the contract every sensor in this repo must
 satisfy, and the contract the spiking network can rely on at its input.
 
 Vehicle 1 has one eye, retina style. That retina is the first sensor built to
-this spec. The README already gives the informal definition and a worked example;
-this spec is the normative version of it and keeps its conventions.
+this spec.
 
 ## Goal
 
@@ -35,6 +34,13 @@ sensors, the network and the simulator can be developed against one interface.
 - Effectors (separate spec).
 - Physical hardware. Everything here is defined so it can be simulated first and
   implemented in hardware later without changing the interface.
+
+## In short
+
+A neuromorphic sensor is a sensor 'retina style': instead of taking images, it
+fires events (spikes) any time a change is sensed.
+
+The rest of this spec makes that precise.
 
 ## Definition
 
@@ -126,18 +132,31 @@ The first sensor built to this spec.
   | empty → busy          | `ON`  |
   | busy → empty          | `OFF` |
 
-  This is the convention used in the README example, and it is the one the brain
-  will be wired against.
+  This is the convention the brain will be wired against.
 
-The two example stimuli in `docs/images/` show a busy cell in the middle row:
-[`grid_3x3.png`](../docs/images/grid_3x3.png) at `(2,1)` and
-[`grid_3x3_r2c3.png`](../docs/images/grid_3x3_r2c3.png) at `(2,3)`. An object
-crossing the retina from left to right is *not* transmitted as those two
-pictures. It is transmitted as the events at the transition between them —
-`(2,1) OFF` and `(2,3) ON`, in that time order — and nothing at all from the
-seven cells that never change. That difference is the whole point of this spec.
-Because the events carry their own time, their order is itself information: the
-same two events in the opposite order mean an object moving the other way.
+### Worked example
+
+Suppose an artificial eye with 3x3 cells, where each cell can be empty (white)
+or busy (black):
+
+![Cell (2,1) occupied](../docs/images/grid_3x3.png)
+
+If the eye goes from that status to this new one:
+
+![Cell (2,3) occupied](../docs/images/grid_3x3_r2c3.png)
+
+two events will be fired:
+
+- `2,1 off` (cell 2,1 changed from busy to empty)
+- `2,3 on` (cell 2,3 changed from empty to busy)
+
+Note order is important.
+
+What the eye transmits is *not* those two pictures: it is only the two events at
+the transition between them, and nothing at all from the seven cells that never
+change. That difference is the whole point of this spec. And because every event
+carries its own time, their order is itself information — the same two events in
+the opposite order mean an object moving the other way.
 
 ## Acceptance criteria
 
@@ -148,7 +167,7 @@ same two events in the opposite order mean an object moving the other way.
       produces the same event stream.
 - [ ] Two events from the same element are never closer together than `t_ref`.
 - [ ] The retina reports the 3 × 3 addressing above, with ON and OFF channels.
-- [ ] The README example reproduces exactly: going from the `(2,1)` stimulus to
+- [ ] The worked example reproduces exactly: going from the `(2,1)` stimulus to
       the `(2,3)` one yields `(2,1) OFF` then `(2,3) ON`, and nothing else.
 
 ## Open questions
