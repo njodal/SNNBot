@@ -20,4 +20,5 @@ This vehicle has one eye (retina style)
 Design specifications live in [`spec/`](spec/).
 
 - [001 — Neuromorphic sensors](spec/001-neuromorphic-sensors.md): what counts as a
-  neuromorphic sensor in this projec
+  neuromorphic sensor in this project, and the event format all sensors emit.
+

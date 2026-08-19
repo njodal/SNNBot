@@ -26,10 +26,12 @@ sensors, the network and the simulator can be developed against one interface.
 
 - The defining properties a sensor must have to be called neuromorphic here.
 - The event (spike) representation shared by all sensors.
-- The specific instantiation for Vehicle 1's retina.
+- A worked example of both, on the eye of Vehicle 1.
 
 **Out of scope**
 
+- The concrete eye of Vehicle 1 — its array shape, addressing and how it wires
+  into the brain (its own spec, when it is written).
 - The neuron model and network topology of the brain (separate spec).
 - Effectors (separate spec).
 - Physical hardware. Everything here is defined so it can be simulated first and
@@ -62,7 +64,6 @@ two events will be fired:
 Note order is important.
 
 What the eye transmits is *not* those two pictures: it is only the two events at the transition between them, and nothing at all from the seven cells that never change. That difference is the whole point of this spec. And because every event carries its own time, their order is itself information — the same two events in the opposite order mean an object moving the other way.
-
 
 ## Definition
 
@@ -107,9 +108,11 @@ event := (t, address, p)
 | `p`       | `ON` \| `OFF`   | Sign of the change that caused it                     |
 
 `ON` means the quantity the sensor measures increased past threshold, `OFF`
-means it decreased past threshold. What that quantity is belongs to each sensor
-and must be stated in its section — see the retina below. There is no magnitude
-field: an event is an event.
+means it decreased past threshold. Which quantity that is belongs to each sensor
+and must be stated in the spec of that sensor. For the eye of the example above
+it is cell occupancy, so a cell going from empty to busy fires `ON` and one going
+from busy to empty fires `OFF`. There is no magnitude field: an event is an
+event.
 This is the usual address-event representation (AER), and the reason for it is
 property 3 above — it is what makes the sensor output directly injectable into
 the spiking network without any decoding stage.
@@ -137,7 +140,6 @@ Any sensor built to this spec is described by:
 | Array shape        | —   | Number and arrangement of elements                     |
 | Latency            | —   | Delay between the physical change and the event        |
 
-
 ## Acceptance criteria
 
 - [ ] A sensor implementation emits nothing at all while its input is constant.
@@ -146,7 +148,8 @@ Any sensor built to this spec is described by:
 - [ ] Doubling the input intensity everywhere, with the same relative changes,
       produces the same event stream.
 - [ ] Two events from the same element are never closer together than `t_ref`.
-- [ ] The retina reports the 3 × 3 addressing above, with ON and OFF channels.
+- [ ] Every element is individually addressable and has both an `ON` and an
+      `OFF` channel.
 - [ ] The worked example reproduces exactly: going from the `(2,1)` stimulus to
       the `(2,3)` one yields `(2,1) OFF` then `(2,3) ON`, and nothing else.
 
