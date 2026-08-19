@@ -10,6 +10,9 @@ Refers to sensor 'retina style': instead of taking images, it fire events (spike
 
 See [spec 001](spec/001-neuromorphic-sensors.md) for the full definition, the worked example and the event format.
 
+# Vehicles
+Following the Braintenberg tradition, we will define a series of Vehicles, from the simplest one to more sophisticated.
+
 # Vehicle 1
 This vehicle has one eye (retina style)
 
@@ -17,5 +20,4 @@ This vehicle has one eye (retina style)
 Design specifications live in [`spec/`](spec/).
 
 - [001 — Neuromorphic sensors](spec/001-neuromorphic-sensors.md): what counts as a
-  neuromorphic sensor in this project, the event format all sensors emit, and the
-  3x3 retina of Vehicle 1.
+  neuromorphic sensor in this projec
