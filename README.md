@@ -25,3 +25,10 @@ Note order is important.
 
 # Vehicle 1
 This vehicle has one eye (retina style)
+
+# Specs
+Design specifications live in [`spec/`](spec/).
+
+- [001 — Neuromorphic sensors](spec/001-neuromorphic-sensors.md): what counts as a
+  neuromorphic sensor in this project, the event format all sensors emit, and the
+  3x3 retina of Vehicle 1.

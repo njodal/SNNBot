@@ -1,0 +1,16 @@
+# Specs
+
+Design specifications for SNNBot.
+
+## Convention
+
+- One file per spec: `NNN-short-name.md` (e.g. `001-neuromorphic-sensors.md`).
+- Numbers are incremental and never reused.
+- New specs start from [`TEMPLATE.md`](TEMPLATE.md).
+- Status: `draft` → `active` → `implemented` | `superseded`.
+
+## Index
+
+| #   | Spec                                                        | Status |
+|-----|-------------------------------------------------------------|--------|
+| 001 | [Neuromorphic sensors](001-neuromorphic-sensors.md)          | draft  |
