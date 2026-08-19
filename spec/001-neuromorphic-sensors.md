@@ -12,7 +12,8 @@ what it means **for SNNBot**: it is the contract every sensor in this repo must
 satisfy, and the contract the spiking network can rely on at its input.
 
 Vehicle 1 has one eye, retina style. That retina is the first sensor built to
-this spec.
+this spec. The README already gives the informal definition and a worked example;
+this spec is the normative version of it and keeps its conventions.
 
 ## Goal
 
@@ -77,8 +78,10 @@ event := (t, address, p)
 | `address` | sensor-specific | Which element fired (for the retina: row, column)     |
 | `p`       | `ON` \| `OFF`   | Sign of the change that caused it                     |
 
-`ON` means the measured quantity increased past threshold, `OFF` means it
-decreased past threshold. There is no magnitude field: an event is an event.
+`ON` means the quantity the sensor measures increased past threshold, `OFF`
+means it decreased past threshold. What that quantity is belongs to each sensor
+and must be stated in its section — see the retina below. There is no magnitude
+field: an event is an event.
 This is the usual address-event representation (AER), and the reason for it is
 property 3 above — it is what makes the sensor output directly injectable into
 the spiking network without any decoding stage.
@@ -88,9 +91,9 @@ the spiking network without any decoding stage.
 Each element keeps a reference value `L_ref` of its input signal `L(t)`, and
 fires when the signal has moved far enough from that reference:
 
-- `L(t) = log(I(t))` — the log of the raw measurement, so that the threshold
-  means *relative* change and the element works across a wide range of input
-  intensities.
+- `L(t) = log(I(t))`, where `I` is the raw quantity that element measures. Taking
+  the log makes the threshold mean a *relative* change, so the element behaves the
+  same across a wide range of input magnitudes.
 - If `L(t) − L_ref > θ` → emit `ON`, then set `L_ref = L(t)`.
 - If `L_ref − L(t) > θ` → emit `OFF`, then set `L_ref = L(t)`.
 - After emitting, the element is blind for a refractory period `t_ref`.
@@ -114,17 +117,27 @@ The first sensor built to this spec.
   `row, col ∈ {1, 2, 3}`, row 1 at the top, column 1 at the left.
 - **Channels:** each element has an `ON` and an `OFF` channel, so the retina
   presents 18 spike outputs to the brain.
-- **Input:** scene luminance falling on the element. A dark object over an
-  element lowers `L`, so its arrival produces `OFF` and its departure `ON`.
+- **Measured quantity:** cell occupancy — how much of the cell is covered by an
+  object. A cell is *busy* (black) when occupied and *empty* (white) when not, so
+  occupancy rises when an object arrives:
 
-The two example stimuli in `docs/images/` show a dark cell in the middle row:
+  | Transition            | Event |
+  |-----------------------|-------|
+  | empty → busy          | `ON`  |
+  | busy → empty          | `OFF` |
+
+  This is the convention used in the README example, and it is the one the brain
+  will be wired against.
+
+The two example stimuli in `docs/images/` show a busy cell in the middle row:
 [`grid_3x3.png`](../docs/images/grid_3x3.png) at `(2,1)` and
-[`grid_3x3_r2c3.png`](../docs/images/grid_3x3_r2c3.png) at `(2,3)`. A dark
-object crossing the retina from left to right is *not* transmitted as those two
-pictures. It is transmitted as the events at the boundaries between them —
-`OFF` at the cell being entered, `ON` at the cell being left, in that time
-order, and nothing at all from the six cells that never change. That difference
-is the whole point of this spec.
+[`grid_3x3_r2c3.png`](../docs/images/grid_3x3_r2c3.png) at `(2,3)`. An object
+crossing the retina from left to right is *not* transmitted as those two
+pictures. It is transmitted as the events at the transition between them —
+`(2,1) OFF` and `(2,3) ON`, in that time order — and nothing at all from the
+seven cells that never change. That difference is the whole point of this spec.
+Because the events carry their own time, their order is itself information: the
+same two events in the opposite order mean an object moving the other way.
 
 ## Acceptance criteria
 
@@ -135,6 +148,8 @@ is the whole point of this spec.
       produces the same event stream.
 - [ ] Two events from the same element are never closer together than `t_ref`.
 - [ ] The retina reports the 3 × 3 addressing above, with ON and OFF channels.
+- [ ] The README example reproduces exactly: going from the `(2,1)` stimulus to
+      the `(2,3)` one yields `(2,1) OFF` then `(2,3) ON`, and nothing else.
 
 ## Open questions
 

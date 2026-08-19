@@ -23,6 +23,9 @@ Two events will be fired:
 
 Note order is important.
 
+The normative version of this definition — the event format, the element model
+and its parameters — is [spec 001](spec/001-neuromorphic-sensors.md).
+
 # Vehicle 1
 This vehicle has one eye (retina style)
 
