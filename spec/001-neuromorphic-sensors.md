@@ -42,6 +42,28 @@ fires events (spikes) any time a change is sensed.
 
 The rest of this spec makes that precise.
 
+## Example
+
+Suppose an artificial eye with 3x3 cells, where each cell can be empty (white) or busy (black):
+
+![Cell (2,1) occupied](../docs/images/grid_3x3.png)
+
+Each cell has to sensors, one that fires when the cell became busy, and the other one when becames empty.
+
+So if the eye change from last status to this new one:
+
+![Cell (2,3) occupied](../docs/images/grid_3x3_r2c3.png)
+
+two events will be fired:
+
+- `2,1 off` (cell 2,1 changed from busy to empty)
+- `2,3 on` (cell 2,3 changed from empty to busy)
+
+Note order is important.
+
+What the eye transmits is *not* those two pictures: it is only the two events at the transition between them, and nothing at all from the seven cells that never change. That difference is the whole point of this spec. And because every event carries its own time, their order is itself information — the same two events in the opposite order mean an object moving the other way.
+
+
 ## Definition
 
 A sensor is **neuromorphic** in SNNBot if it has all of the following properties.
@@ -135,28 +157,6 @@ The first sensor built to this spec.
   This is the convention the brain will be wired against.
 
 ### Worked example
-
-Suppose an artificial eye with 3x3 cells, where each cell can be empty (white)
-or busy (black):
-
-![Cell (2,1) occupied](../docs/images/grid_3x3.png)
-
-If the eye goes from that status to this new one:
-
-![Cell (2,3) occupied](../docs/images/grid_3x3_r2c3.png)
-
-two events will be fired:
-
-- `2,1 off` (cell 2,1 changed from busy to empty)
-- `2,3 on` (cell 2,3 changed from empty to busy)
-
-Note order is important.
-
-What the eye transmits is *not* those two pictures: it is only the two events at
-the transition between them, and nothing at all from the seven cells that never
-change. That difference is the whole point of this spec. And because every event
-carries its own time, their order is itself information — the same two events in
-the opposite order mean an object moving the other way.
 
 ## Acceptance criteria
 
