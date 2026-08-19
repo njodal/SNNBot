@@ -16,5 +16,12 @@ If the eye goes from later status to this new one:
 
 ![Cell (2,3) occupied](docs/images/grid_3x3_r2c3.png)
 
+Two events will be fired:
+
+2,1 off. (cell 2,1 changed from busy to empty)
+2,3 on   (cell 2,3 changed from empty to busy)
+
+Note order is important.
+
 # Vehicle 1
 This vehicle has one eye (retina style)
