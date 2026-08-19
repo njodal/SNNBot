@@ -10,11 +10,20 @@ Refers to sensor 'retina style': instead of taking images, it fire events (spike
 
 See [spec 001](spec/001-neuromorphic-sensors.md) for the full definition, the worked example and the event format.
 
+## Neuromorphic actuators
+Refers to actuator 'muscle style': it is fixed to two both sides of and articulation and can only contract.
+
 # Vehicles
 Following the Braintenberg tradition, we will define a series of Vehicles, from the simplest one to more sophisticated.
 
-# Vehicle 1
-This vehicle has one eye (retina style)
+## Vehicle 1
+This vehicle has:
+- sensors
+  - one eye very simple eye: just an array of 9 cells (1x9)
+- actuators
+  - one attached to the right of eye and the other to the left
+ 
+So the vehicle can't move, it just can move the eye to both sides. 
 
 # Specs
 Design specifications live in [`spec/`](spec/).
