@@ -48,7 +48,7 @@ Suppose an artificial eye with 3x3 cells, where each cell can be empty (white) o
 
 ![Cell (2,1) occupied](../docs/images/grid_3x3.png)
 
-Each cell has to sensors, one that fires when the cell became busy, and the other one when becames empty.
+Each cell has two sensors, one that fires when the cell became busy, and the other one when becames empty.
 
 So if the eye change from last status to this new one:
 
