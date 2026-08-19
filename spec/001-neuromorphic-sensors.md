@@ -137,26 +137,6 @@ Any sensor built to this spec is described by:
 | Array shape        | —   | Number and arrangement of elements                     |
 | Latency            | —   | Delay between the physical change and the event        |
 
-## Vehicle 1 retina
-
-The first sensor built to this spec.
-
-- **Array shape:** 3 × 3, nine elements. Addresses are `(row, col)` with
-  `row, col ∈ {1, 2, 3}`, row 1 at the top, column 1 at the left.
-- **Channels:** each element has an `ON` and an `OFF` channel, so the retina
-  presents 18 spike outputs to the brain.
-- **Measured quantity:** cell occupancy — how much of the cell is covered by an
-  object. A cell is *busy* (black) when occupied and *empty* (white) when not, so
-  occupancy rises when an object arrives:
-
-  | Transition            | Event |
-  |-----------------------|-------|
-  | empty → busy          | `ON`  |
-  | busy → empty          | `OFF` |
-
-  This is the convention the brain will be wired against.
-
-### Worked example
 
 ## Acceptance criteria
 
@@ -173,8 +153,6 @@ The first sensor built to this spec.
 ## Open questions
 
 - Values for `θ` and `t_ref` — to be fixed once the simulator's time base exists.
-- Does the brain need ON and OFF as separate input channels, or is one polarity
-  enough for Vehicle 1's behaviour?
 - The simulator will likely render stimuli as frames internally. What frame rate
   is fine before the discretisation shows up as artefacts in the event stream?
 - Which sensors beyond vision does the bot need (proximity, contact/whiskers,
