@@ -15,7 +15,9 @@ There are two types of sensors:
 Refers to sensor 'retina style': instead of taking images, it fires an spike any time a change is sensed.
 
 ### Threshold based
-This type of sensors is useful for sensing which is the current value of something. Ex: for sensing the level of contraction of a muscle, 
+It continuous fires while some value of the environment it's inside some range.
+
+Ex: suppose the state of a muscle can be from (0 - no contraction, to 100 - full contracted), one sensor can be one that fires when the value is between 11 and 20.
 
 ## Goal
 
