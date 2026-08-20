@@ -42,6 +42,20 @@ Note order is important.
 
 What the eye transmits is *not* those two pictures: it is only the two events at the transition between them, and nothing at all from the seven cells that never change. That difference is the whole point of this spec. And because every event carries its own time, their order is itself information — the same two events in the opposite order mean an object moving the other way.
 
+## Example II: contraction sensor
+
+Suppose the state of a muscle goes from 0 (no contraction) to 100 (fully contracted). Ten threshold based sensors are packed in an array, each one covering a tenth of that span: sensor 1 fires between 0 and 10, sensor 2 between 11 and 20, sensor 3 between 21 and 30, and so on up to sensor 10 between 91 and 100.
+
+The ranges do not overlap and together they cover the whole span, so exactly one sensor is firing at any moment. Which one it is *is* the reading:
+
+![Sensor 3 firing](../docs/images/grid_1x10_c3.png)
+
+Here the muscle is contracted somewhere between 21 and 30.
+
+Unlike the eye, this array says nothing by the transitions alone: it keeps firing for as long as the muscle stays where it is, and a contraction that does not move is still being reported. What the array gives the network is a position along a line, encoded as which of ten inputs is active — the same thing a black cell means in the picture above, except that here black means *this sensor is firing now*, not *this cell is occupied*.
+
+Vehicle 1 carries two of these arrays, one per actuator.
+
 ## Definition
 
 A sensor is **neuromorphic** in SNNBot if it has all of the following properties.
