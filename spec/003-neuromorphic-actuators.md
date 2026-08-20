@@ -12,11 +12,21 @@ An actuator moves in **one direction only**: it contracts (or, the other way rou
 ## Effectors
 Each actuator is connected to several neurons called *effectors*. Every spike an effector fires contracts the actuator by one fixed step.
 
+An effector has two inputs, and a single spike on either one is enough: one tells it to **start** emitting, the other tells it to **stop**. In between it fires on its own, at its own frequency, with nothing arriving to keep it going.
+
+So the brain never has to sustain a movement. Two spikes are the whole command — one to start, one to stop — and everything else follows from them:
+
+```
+total contraction = step × frequency of the effector × time between the two spikes
+```
+
 Each effector fires at its own frequency, so which effector is firing is what sets how fast the actuator moves: a slow effector contracts it slowly, a fast one contracts it quickly. The actuator itself has no notion of speed — the speed is just how often the spikes arrive.
 
 ```
 contraction speed = step × spikes per second arriving from the effectors
 ```
+
+![An actuator and the effectors that drive it](../docs/images/actuator_effectors.png)
 
 This is the mirror image of the threshold based sensors of [spec 001](001-neuromorphic-sensors.md): there, which sensor is firing tells the brain the level of contraction; here, which effector is firing tells the actuator how fast to contract.
 
@@ -35,6 +45,8 @@ This is the mirror image of the threshold based sensors of [spec 001](001-neurom
 - [ ] The same effector firing for twice as long contracts it twice as much.
 - [ ] A faster effector contracts it faster, with no other change.
 - [ ] Nothing the actuator can do by itself moves it back.
+- [ ] An effector emits from the `start` spike until the `stop` spike, and not a
+      spike outside that interval.
 
 ## Open questions
 
@@ -43,3 +55,4 @@ This is the mirror image of the threshold based sensors of [spec 001](001-neurom
 - What happens at the end of the range, when it is already fully contracted — are the spikes simply ignored?
 - Is the step the same size at every level of contraction?
 - How many effectors does each actuator of Vehicle 1 have, and at what frequencies?
+- What does an effector do with a second `start` while it is already emitting, or with a `stop` while it is not?
