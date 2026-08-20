@@ -8,7 +8,7 @@ Have a simple bot (a la Braintenberg Vehicles) using neuromorphic sensors, brain
 ## Neuromorphic sensors
 The term *neuromorphic* sensors in this contexts refers to sensors that senses some value from the environment and fires *spikes* (events) to be send to upper level of the Spike Neural Network.
 
-See [spec 001](spec/001-neuromorphic-sensors.md) for the full definition, the worked example and the event format.
+See [spec 001](spec/001-neuromorphic-sensors.md).
 
 # Vehicles
 Following the Braintenberg tradition, we will define a series of Vehicles, from the simplest one to more sophisticated.
