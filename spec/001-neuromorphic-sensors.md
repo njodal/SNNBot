@@ -4,15 +4,18 @@
 - **Date:** 2026-08-19
 - **Supersedes / Superseded by:** —
 
-## Context
+## Definition
+The term *neuromorphic* sensors in this contexts refers to sensors that senses some value from the environment and fires *spikes* (events) to be send to upper level of the Spike Neural Network.
 
-The project goal states that the bot must use *neuromorphic* sensors, brain and
-effectors. "Neuromorphic" is used loosely in the literature, so this spec fixes
-what it means **for SNNBot**: it is the contract every sensor in this repo must
-satisfy, and the contract the spiking network can rely on at its input.
+There are two types of sensors:
+- change based: fires when something change in the environment. Ex: retina style eye.
+- threshold based: fires when same value is above same value. Ex: sensor to measure the level of contraction of a muscle.
 
-Vehicle 1 has one eye, retina style. That retina is the first sensor built to
-this spec.
+### Change based sensors
+Refers to sensor 'retina style': instead of taking images, it fires an spike any time a change is sensed.
+
+### Threshold based
+This type of sensors is useful for sensing which is the current value of something. Ex: for sensing the level of contraction of a muscle, 
 
 ## Goal
 
