@@ -8,8 +8,6 @@
 The term *neuromorphic* sensors in this contexts refers to sensors that senses some value from the environment and fires *spikes* (events) to be send to upper level of the Spike Neural Network.
 
 There are two types of sensors:
-- change based: fires when something change in the environment. Ex: retina style eye.
-- threshold based: fires when same value is above same value. Ex: sensor to measure the level of contraction of a muscle.
 
 ### Change based 
 Refers to sensor 'retina style': instead of taking images, it fires an spike any time a change is sensed.
