@@ -12,10 +12,14 @@ There are two types of sensors:
 ### Change based 
 Refers to sensor 'retina style': instead of taking images, it fires an spike any time a change is sensed.
 
+This sensors are usually packed in a matrix. 
+
 ### Threshold based
 It continuous fires while some value of the environment it's inside some range.
 
 Ex: suppose the state of a muscle can be from (0 - no contraction, to 100 - full contracted), one sensor can be one that fires when the value is between 11 and 20.
+
+This sensors are usually packed in an array. Ex: to sense the tension of a muscle 10 sensors are packed so only one is firing at a given time (signalling the level of contraction).
 
 ## Goal
 
