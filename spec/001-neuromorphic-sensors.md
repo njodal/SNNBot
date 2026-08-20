@@ -21,37 +21,7 @@ Ex: suppose the state of a muscle can be from (0 - no contraction, to 100 - full
 
 This sensors are usually packed in an array. Ex: to sense the tension of a muscle 10 sensors are packed so only one is firing at a given time (signalling the level of contraction).
 
-## Goal
-
-Define what counts as a neuromorphic sensor in SNNBot, the event format its
-output must use, and the parameters that describe any such sensor — so that
-sensors, the network and the simulator can be developed against one interface.
-
-## Scope
-
-**In scope**
-
-- The defining properties a sensor must have to be called neuromorphic here.
-- The event (spike) representation shared by all sensors.
-- A worked example of both, on the eye of Vehicle 1.
-
-**Out of scope**
-
-- The concrete eye of Vehicle 1 — its array shape, addressing and how it wires
-  into the brain (its own spec, when it is written).
-- The neuron model and network topology of the brain (separate spec).
-- Effectors (separate spec).
-- Physical hardware. Everything here is defined so it can be simulated first and
-  implemented in hardware later without changing the interface.
-
-## In short
-
-A neuromorphic sensor is a sensor 'retina style': instead of taking images, it
-fires events (spikes) any time a change is sensed.
-
-The rest of this spec makes that precise.
-
-## Example
+## Example I: artificial eye
 
 Suppose an artificial eye with 3x3 cells, where each cell can be empty (white) or busy (black):
 
