@@ -15,3 +15,4 @@ Design specifications for SNNBot.
 |-----|-------------------------------------------------------------|--------|
 | 001 | [Neuromorphic sensors](001-neuromorphic-sensors.md)          | draft  |
 | 002 | [Vehicles](002-vehicles.md)                                  | draft  |
+| 003 | [Neuromorphic actuators](003-neuromorphic-actuators.md)      | draft  |
