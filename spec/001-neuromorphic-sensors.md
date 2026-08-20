@@ -11,7 +11,7 @@ There are two types of sensors:
 - change based: fires when something change in the environment. Ex: retina style eye.
 - threshold based: fires when same value is above same value. Ex: sensor to measure the level of contraction of a muscle.
 
-### Change based sensors
+### Change based 
 Refers to sensor 'retina style': instead of taking images, it fires an spike any time a change is sensed.
 
 ### Threshold based
