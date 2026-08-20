@@ -13,7 +13,7 @@ See [spec 001](spec/001-neuromorphic-sensors.md).
 # Vehicles
 Following the Braintenberg tradition, we will define a series of Vehicles, from the simplest one to more sophisticated.
 
-See [spec 002](spec/002-vehicles.md) for what each vehicle is made of.
+See [spec 002](spec/002-vehicles.md).
 
 # Specs
 Design specifications live in [`spec/`](spec/).
