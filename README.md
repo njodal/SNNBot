@@ -17,8 +17,7 @@ Following the Braintenberg tradition, we will define a series of Vehicles, from 
 This vehicle has:
 - sensors
   - one very simple eye: just an array of 9 cells (1x9)
-  - 20 proprioceptive sensors:
-    - 10 for the right actuator and 10 for the left one, each set of 10 sense the level of contraction of the actuator (only one sensor is active)
+  - two propioceptive sensors (1x10 sensors each) to sense the level of contraction of each actuator
 - actuators
   - one attached to the right of eye and the other to the left
  
