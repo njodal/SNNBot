@@ -21,7 +21,15 @@ This vehicle has:
 - actuators
   - one attached to the right of eye and the other to the left
  
-So the vehicle can't move, it just can move the eye to both sides. 
+So the vehicle can't move, it just can move the eye to both sides.
+
+Its shape is a T: the eye is the head, the joint is where the head meets the stem, and both actuators run from the middle of each half of the head down to the middle of the base:
+
+![Vehicle 1 at rest](docs/images/vehicle1_layout.png)
+
+Contracting one actuator stretches the other and the head turns around the joint, so the eye ends up looking to that side:
+
+![Vehicle 1 with the head turned](docs/images/vehicle1_tilted.png)
 
 # Specs
 Design specifications live in [`spec/`](spec/).
