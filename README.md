@@ -6,20 +6,9 @@ Have a simple bot (a la Braintenberg Vehicles) using neuromorphic sensors, brain
 
 # Definitions
 ## Neuromorphic sensors
-There are two types of sensors:
-- change based: fires when something change in the environment. Ex: retina style eye.
-- threshold based: fires when same value is above same value. Ex: sensor to measure the level of contraction of a muscle.
-
-### Change based sensors
-Refers to sensor 'retina style': instead of taking images, it fire events (spikes) any time a change is sensed.
+The term *neuromorphic* sensors in this contexts refers to sensors that senses some value from the environment and fires *spikes* (events) to be send to upper level of the Spike Neural Network.
 
 See [spec 001](spec/001-neuromorphic-sensors.md) for the full definition, the worked example and the event format.
-
-### Threshold based
-This type of sensors is useful for sensing which is the current value of something. Ex: for sensing the level of contraction of a muscle, 
-
-## Neuromorphic actuators
-Refers to actuator 'muscle style': it is fixed to two both sides of and articulation and can only contract.
 
 # Vehicles
 Following the Braintenberg tradition, we will define a series of Vehicles, from the simplest one to more sophisticated.
