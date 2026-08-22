@@ -9,6 +9,8 @@ The term *neuromorphic* actuator in this context refers to an actuator driven by
 
 An actuator moves in **one direction only**: it contracts (or, the other way round, it extends), and it cannot undo that movement by itself. Bringing it back is somebody else's job — in [Vehicle 1](002-vehicles.md) it is the antagonist actuator, which pulls the head the other way and stretches this one.
 
+If an actuator is not receiving any spikes it goes to relax mode in a short period of time.
+
 ## Effectors
 An *effectors* is an special kind of neuron responsible for moving actuators. Every spike an effector fires contracts the actuator by one fixed step. An actuator can be attached to many effectors.
 
@@ -56,7 +58,6 @@ This is the mirror image of the threshold based sensors of [spec 001](001-neurom
 
 ## Open questions
 
-- What does the actuator do while no effector is firing: does it hold its position, or does it relax back on its own?
 - If several effectors fire at once, do their rates add up, or is only one meant to be active at a time, the way only one threshold sensor is?
 - What happens at the end of the range, when it is already fully contracted — are the spikes simply ignored?
 - Is the step the same size at every level of contraction?
