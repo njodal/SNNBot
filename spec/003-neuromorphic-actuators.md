@@ -10,9 +10,11 @@ The term *neuromorphic* actuator in this context refers to an actuator driven by
 An actuator moves in **one direction only**: it contracts (or, the other way round, it extends), and it cannot undo that movement by itself. Bringing it back is somebody else's job — in [Vehicle 1](002-vehicles.md) it is the antagonist actuator, which pulls the head the other way and stretches this one.
 
 ## Effectors
-Each actuator is connected to several neurons called *effectors*. Every spike an effector fires contracts the actuator by one fixed step.
+An *effectors* is an special kind of neuron responsible for moving actuators. Every spike an effector fires contracts the actuator by one fixed step. An actuator can be attached to many effectors.
 
-An effector has two inputs, and a single spike on either one is enough: one tells it to **start** emitting, the other tells it to **stop**. In between it fires on its own, at its own frequency, with nothing arriving to keep it going.
+An effector has two inputs, and a single spike on either one is enough: one tells it to **start** emitting, the other tells it to **stop**. Once the start is received the effector emits spikes at its own frequency for also its own duration (or when a stop spike is received).
+
+So it's common to have many effectors attached to the same actuator (with different frequencies and duration) in order to fine tune the actuator movements.
 
 So the brain never has to sustain a movement. Two spikes are the whole command — one to start, one to stop — and everything else follows from them:
 
