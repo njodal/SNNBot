@@ -16,11 +16,13 @@ An effector has two inputs, and a single spike on either one is enough: one tell
 
 So it's common to have many effectors attached to the same actuator (with different frequencies and duration) in order to fine tune the actuator movements.
 
-So the brain never has to sustain a movement. Two spikes are the whole command — one to start, one to stop — and everything else follows from them:
+So the brain never has to sustain a movement. One spike is usually the whole command: the effector runs its own course and stops by itself, and the `stop` input is there for cutting it short before that:
 
 ```
-total contraction = step × frequency of the effector × time between the two spikes
+total contraction = step × frequency of the effector × how long it emits
 ```
+
+where *how long it emits* is the effector's own duration, or the time up to the `stop` spike if one arrives first. Between the two, the brain picks how far the actuator travels by picking which effector to start.
 
 Each effector fires at its own frequency, so which effector is firing is what sets how fast the actuator moves: a slow effector contracts it slowly, a fast one contracts it quickly. The actuator itself has no notion of speed — the speed is just how often the spikes arrive.
 
@@ -38,7 +40,9 @@ This is the mirror image of the threshold based sensors of [spec 001](001-neurom
 |-----------|----------------------------------------------------------------|
 | Step      | How much the actuator contracts on a single spike               |
 | Range     | The span of contraction, from fully relaxed to fully contracted |
-| Effectors | How many are attached, and the frequency of each one            |
+| Effectors | How many are attached to the actuator                           |
+| Frequency | How often one effector emits, once started                      |
+| Duration  | How long it goes on emitting if nothing stops it                |
 
 ## Acceptance criteria
 
@@ -47,8 +51,10 @@ This is the mirror image of the threshold based sensors of [spec 001](001-neurom
 - [ ] The same effector firing for twice as long contracts it twice as much.
 - [ ] A faster effector contracts it faster, with no other change.
 - [ ] Nothing the actuator can do by itself moves it back.
-- [ ] An effector emits from the `start` spike until the `stop` spike, and not a
-      spike outside that interval.
+- [ ] An effector emits nothing until a `start` spike arrives.
+- [ ] Once started it emits at its frequency for its duration, with nothing else
+      arriving, and then stops on its own.
+- [ ] A `stop` spike ends the emission earlier, and nothing is emitted after it.
 
 ## Open questions
 
@@ -56,5 +62,5 @@ This is the mirror image of the threshold based sensors of [spec 001](001-neurom
 - If several effectors fire at once, do their rates add up, or is only one meant to be active at a time, the way only one threshold sensor is?
 - What happens at the end of the range, when it is already fully contracted — are the spikes simply ignored?
 - Is the step the same size at every level of contraction?
-- How many effectors does each actuator of Vehicle 1 have, and at what frequencies?
+- How many effectors does each actuator of Vehicle 1 have, and with what frequencies and durations?
 - What does an effector do with a second `start` while it is already emitting, or with a `stop` while it is not?
