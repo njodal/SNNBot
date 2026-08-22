@@ -34,15 +34,13 @@ contraction speed = step × spikes per second arriving from the effectors
 
 This is the mirror image of the threshold based sensors of [spec 001](001-neuromorphic-sensors.md): there, which sensor is firing tells the brain the level of contraction; here, which effector is firing tells the actuator how fast to contract.
 
-## Parameters
+## Actuator Parameters
 
 | Parameter | Meaning                                                        |
 |-----------|----------------------------------------------------------------|
 | Step      | How much the actuator contracts on a single spike               |
 | Range     | The span of contraction, from fully relaxed to fully contracted |
 | Effectors | How many are attached to the actuator                           |
-| Frequency | How often one effector emits, once started                      |
-| Duration  | How long it goes on emitting if nothing stops it                |
 
 ## Acceptance criteria
 
