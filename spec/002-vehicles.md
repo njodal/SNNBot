@@ -25,7 +25,7 @@ This layer can have some learning or not, depending on each vehicle.
 ### Efector Layer
 This layer is composed of Effector cells that are attached to the actuators. 
 
-If an Effector cells doesn't have yet an start and stop input signal, it is said the cell is uncontrolled and it will fires spontaneous for a brief period of time. THis is the cause of 'motor babling' and is useful to learn correlations in the Sensory Layer.
+If an Effector cells doesn't have yet an start and stop input signal, it is said the cell is uncontrolled and it will fire spontaneously for a brief period of time. This is the cause of 'motor babling' and is useful to learn correlations in the Sensory Layer.
 
 ## Vehicle 1
 
