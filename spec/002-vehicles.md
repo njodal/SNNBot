@@ -29,6 +29,8 @@ If an Effector cell doesn't have yet a start and stop input signal, it is said t
 
 Uncontrolled means *not wired yet*: nothing is connected to the cell's start and stop inputs. Once the cell is wired, its spontaneous firing is gone for good. So babbling belongs to the stage before the cortex has taken hold of an effector, and is not something an idle effector does while waiting for a command.
 
+The firing of an uncontrolled cell is random: nothing schedules it, the cell simply goes off at unpredictable moments (ex: one time in two seconds) and emits for a brief period each time (ex: 0.5 seconds). That randomness is what makes babbling worth having — the movements it produces bear no relation to each other, so whatever the Sensory Layer does find correlated is the tie between a movement and what it causes the sensors to see.
+
 ## Vehicle 1
 
 This vehicle has:
