@@ -8,6 +8,10 @@ Following the Braintenberg tradition, we will define a series of Vehicles, from 
 
 Every vehicle is built out of the sensor types defined in [spec 001](001-neuromorphic-sensors.md).
 
+## General Architecture
+All vehicles have a similar setup for sensor, brain, and actuators. 
+
+
 ## Vehicle 1
 
 This vehicle has:
