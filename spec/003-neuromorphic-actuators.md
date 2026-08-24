@@ -43,6 +43,14 @@ This is the mirror image of the threshold based sensors of [spec 001](001-neurom
 | Step      | How much the actuator contracts on a single spike               |
 | Range     | The span of contraction, from fully relaxed to fully contracted |
 | Effectors | How many are attached to the actuator                           |
+| Relax time | How long it takes to relax once no spikes are arriving         |
+
+## Effector Parameters
+
+| Parameter | Meaning                                                        |
+|-----------|----------------------------------------------------------------|
+| Frequency | How often it emits, once started                                |
+| Duration  | How long it goes on emitting if nothing stops it                |
 
 ## Acceptance criteria
 
