@@ -4,28 +4,30 @@
 - **Date:** 2026-08-20
 - **Supersedes / Superseded by:** —
 
-Following the Braintenberg tradition, we will define a series of Vehicles, from the simplest one to more sophisticated.
+Following the Braitenberg tradition, we will define a series of Vehicles, from the simplest one to more sophisticated.
 
 Every vehicle is built out of the sensor types defined in [spec 001](001-neuromorphic-sensors.md).
 
 ## General Architecture
-All vehicles have a similar setup for sensor, brain, and actuators.
+All vehicles have a similar setup for sensors, brain, and actuators.
 
 ![The architecture of a vehicle](../docs/images/vehicle_architecture.png)
 
-At the bottom is the *body*: the sensors that face the environment, the propioceptive sensors that face the body itself, and the actuators. On top of it sits the *cortex*, and between them two layers that do the translating — the sensory layer, which takes the spikes the sensors fire, and the effector layers, whose effectors drive the actuators.
+At the bottom is the *body*: the sensors that face the environment, the propioceptive sensors that face the body itself, and the actuators. On top of it sits the *cortex*, and between them two layers that do the translating — the sensory layer, which takes the spikes the sensors fire, and the effector layer, whose effectors drive the actuators.
 
 Nothing crosses those levels other than spikes, so what changes from one vehicle to the next is what hangs off the bottom level and how the cortex is wired, not the shape of the stack.
 
 ### Sensory Layer
-It takes spikes from sensors and do some processing to generate perception to be send to the Cortex. Ex: find some correlations in the spikes between environment sensors and propiceptive one (in other words, find which effect have in the sensor the moves detected by the propioceptive).
+It takes spikes from sensors and does some processing to generate perception to be sent to the Cortex. Ex: find some correlations in the spikes between environment sensors and propioceptive ones (in other words, find what effect the movements detected by the propioceptive sensors have on the environment ones).
 
 This layer can have some learning or not, depending on each vehicle.
 
-### Efector Layer
-This layer is composed of Effector cells that are attached to the actuators. 
+### Effector Layer
+This layer is composed of Effector cells that are attached to the actuators.
 
-If an Effector cells doesn't have yet an start and stop input signal, it is said the cell is uncontrolled and it will fire spontaneously for a brief period of time. This is the cause of 'motor babling' and is useful to learn correlations in the Sensory Layer.
+If an Effector cell doesn't have yet a start and stop input signal, it is said the cell is uncontrolled and it will fire spontaneously for a brief period of time. This is the cause of 'motor babbling' and is useful to learn correlations in the Sensory Layer.
+
+Uncontrolled means *not wired yet*: nothing is connected to the cell's start and stop inputs. Once the cell is wired, its spontaneous firing is gone for good. So babbling belongs to the stage before the cortex has taken hold of an effector, and is not something an idle effector does while waiting for a command.
 
 ## Vehicle 1
 
