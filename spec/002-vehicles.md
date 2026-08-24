@@ -17,6 +17,16 @@ At the bottom is the *body*: the sensors that face the environment, the propioce
 
 Nothing crosses those levels other than spikes, so what changes from one vehicle to the next is what hangs off the bottom level and how the cortex is wired, not the shape of the stack.
 
+### Sensory Layer
+It takes spikes from sensors and do some processing to generate perception to be send to the Cortex. Ex: find some correlations in the spikes between environment sensors and propiceptive one (in other words, find which effect have in the sensor the moves detected by the propioceptive).
+
+This layer can have some learning or not, depending on each vehicle.
+
+### Efector Layer
+This layer is composed of Effector cells that are attached to the actuators. 
+
+If an Effector cells doesn't have yet an start and stop input signal, it is said the cell is uncontrolled and it will fires spontaneous for a brief period of time. THis is the cause of 'motor babling' and is useful to learn correlations in the Sensory Layer.
+
 ## Vehicle 1
 
 This vehicle has:
