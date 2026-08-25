@@ -25,8 +25,12 @@ Design specifications live in [`spec/`](spec/).
 
 - [001 — Neuromorphic sensors](spec/001-neuromorphic-sensors.md): what counts as a
   neuromorphic sensor in this project, and the event format all sensors emit.
-- [002 — Vehicles](spec/002-vehicles.md): the series of vehicles, what sensors and
-  actuators each one carries, and how it is put together.
+- [002 — Vehicles](spec/002-vehicles.md): the architecture every vehicle shares,
+  and the list of the vehicles themselves.
 - [003 — Neuromorphic actuators](spec/003-neuromorphic-actuators.md): what drives an
   actuator, and how the effectors set the speed it moves at.
+- [004 — Simulator](spec/004-simulator.md): how the vehicles are run on a laptop —
+  the time base, the stack, and what the vehicle is not allowed to see.
+- [005 — Vehicle 1](spec/005-vehicle-1.md): the first vehicle — one eye, two
+  actuators that turn it, and nothing else.
 

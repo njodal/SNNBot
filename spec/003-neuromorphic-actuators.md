@@ -7,7 +7,7 @@
 ## Definition
 The term *neuromorphic* actuator in this context refers to an actuator driven by spikes and by nothing else: it takes no position to go to and no speed to go at, it just receives spikes and moves a little on each one.
 
-An actuator moves in **one direction only**: it contracts (or, the other way round, it extends), and it cannot undo that movement by itself. Bringing it back is somebody else's job — in [Vehicle 1](002-vehicles.md) it is the antagonist actuator, which pulls the head the other way and stretches this one.
+An actuator moves in **one direction only**: it contracts (or, the other way round, it extends), and it cannot undo that movement by itself. Bringing it back is somebody else's job — in [Vehicle 1](005-vehicle-1.md) it is the antagonist actuator, which pulls the head the other way and stretches this one.
 
 If an actuator is not receiving any spikes it goes to relax mode in a short period of time.
 

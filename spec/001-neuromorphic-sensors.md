@@ -54,7 +54,7 @@ Here the muscle is contracted somewhere between 21 and 30.
 
 Unlike the eye, this array says nothing by the transitions alone: it keeps firing for as long as the muscle stays where it is, and a contraction that does not move is still being reported. What the array gives the network is a position along a line, encoded as which of ten inputs is active — the same thing a black cell means in the picture above, except that here black means *this sensor is firing now*, not *this cell is occupied*.
 
-Vehicle 1 carries two of these arrays, one per actuator.
+[Vehicle 1](005-vehicle-1.md) carries two of these arrays, one per actuator.
 
 ## Definition
 
