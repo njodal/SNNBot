@@ -1,18 +1,18 @@
-# 005 — Vehicle 1
+# 005 — Vehicle 1 - a moving eye
 
 - **Status:** draft
 - **Date:** 2026-08-25
 - **Supersedes / Superseded by:** —
 
-The first of the series of [spec 002](002-vehicles.md), and the simplest one. It is built on the levels described there, out of the sensors of [spec 001](001-neuromorphic-sensors.md) and the actuators of [spec 003](003-neuromorphic-actuators.md).
+The first of the series of [spec 002](002-vehicles.md), and the simplest one. 
 
 This vehicle has:
 
 - sensors
-  - one very simple eye: just an array of 9 cells (1x9)
+  - one very simple eye: just an array of 9 cells (1x9) that can have some kind of lateral inhibition (not modeled) that only allow to perceived one cell ON maximum. this is to simulate viewing a source of light.
   - two propioceptive sensors (1x10 sensors each) to sense the level of contraction of each actuator
 - actuators
-  - one attached to the right of eye and the other to the left
+  - one attached to the right of eye and the other to the left (agonist and antagonist) that move the eye.
 
 So the vehicle can't move, it just can move the eye to both sides.
 
