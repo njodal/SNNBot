@@ -38,6 +38,6 @@ So in this case the sensors are analog:
 - Eye angle: from -45 to 45 indicating the eye inclination
 
 Actuator:
-- a force to move the eye: negative move the left, positive to right
+- a force to move the eye: negative move the left, positive to right, 1 unit of force creates an acceleration of 10 degrees/s2 rotation
 
 Error is the distance from the active cell to cell 5 (center)
