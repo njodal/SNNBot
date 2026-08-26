@@ -59,13 +59,24 @@ snnbot/
     effector.py     the effector cells, wired and unwired
   cortex/
   viz/
-    live.py         pygame
+    live.py         pygame, the vehicle moving while it runs
+    animate.py      the same picture, rendered to a gif
     raster.py       matplotlib
   run.py
 tests/
 ```
 
 `params.py` matters more than it looks: every number in the other specs — `θ`, `t_ref`, step, range, relax time, effector frequencies and durations, the babbling rate, the degrees a retina cell covers — lives there and nowhere else, so the specs and the code can be checked against each other by reading one file.
+
+## Watching it
+Two views, drawing the same thing:
+
+- `viz/live.py`, in pygame: the vehicle moving as it runs, with the object draggable by mouse. This is the one for experimenting, once there is a cortex to experiment with.
+- `viz/animate.py`: the same picture rendered to a gif, one frame every few ticks. Reproducible from its seed, so it can be put in a spec and still be the run it claims to be.
+
+Both draw the T of [spec 005](005-vehicle-1.md) with the busy cell in black, the slice of the world that cell covers, the two actuators as springs that shorten and fatten as they contract, and a raster of the last couple of seconds. In the eye's row of the raster each event sits at the height of the cell that fired it, so the object can be watched sliding along the retina while the head swings.
+
+Neither view may change the run. The criterion below — that a headless run gives the same stream as a watched one — is what keeps them honest.
 
 ## Recording
 Every spike is recorded as it happens, with its source, so a run can be studied after it ends: rasters, correlations, and the exact stream that a test asserts on. A run is reproducible from its seed — the babbling of an unwired effector is random, so without a seed no two runs could be compared.
