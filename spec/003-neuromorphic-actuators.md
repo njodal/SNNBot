@@ -20,6 +20,12 @@ So it's common to have many effectors attached to the same actuator (with differ
 
 An effector whose two inputs are not wired yet is *uncontrolled*: it fires on its own, which is what makes a vehicle babble before its cortex has taken hold of it — see [spec 002](002-vehicles.md). Once it is wired it never does so again, and everything below is about a wired one.
 
+This is what that looks like, run in the simulator of [spec 004](004-simulator.md) with every effector of [Vehicle 1](005-vehicle-1.md) still unwired:
+
+![Motor babbling](../docs/images/babbling.gif)
+
+The bursts in the two lower rows are the uncontrolled effectors going off at random, each emitting at its own frequency for its own duration. Every spike in a burst contracts its actuator one step and stretches the antagonist, which is why the head swings while they fire and holds still between them. The object never moves, and the eye fires all the same.
+
 So the brain never has to sustain a movement. One spike is usually the whole command: the effector runs its own course and stops by itself, and the `stop` input is there for cutting it short before that:
 
 ```
