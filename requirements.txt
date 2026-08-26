@@ -1,0 +1,5 @@
+# The core needs nothing but the standard library.
+pytest        # the acceptance criteria of the specs
+# numpy       # for the correlations, when the sensory layer arrives
+# pygame      # for the live view
+# matplotlib  # for the rasters

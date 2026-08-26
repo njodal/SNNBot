@@ -1,0 +1,165 @@
+"""Render a run to an animated GIF: the vehicle moving, and what it fired.
+
+The object stays where it is. What moves is the head, and with it which cell of
+the eye is looking at the object.
+"""
+
+import math
+import random
+from collections import deque
+
+from PIL import Image, ImageDraw, ImageFont
+
+from ..body.vehicle1 import LEFT, RIGHT, Vehicle1
+from ..clock import Clock
+from ..events import ON
+from ..params import CELL_ANGLE_DEG, EYE_CELLS, TICK_MS
+from ..world import World
+
+W, H = 760, 640
+CELL = 60
+EYE_L = (W - EYE_CELLS * CELL) // 2
+EYE_T, EYE_B = 230, 230 + CELL
+JOINT = (W // 2, EYE_B)
+BASE_Y = 430
+OBJECT_R = 250                      # how far out the object is drawn
+WINDOW_MS = 2000                    # how much of the past the raster shows
+RASTER_L, RASTER_R = 170, W - 20
+ROWS = ((500, 552, "eye"), (566, 584, "effector L"), (594, 612, "effector R"))
+
+
+def _font(sz):
+    return ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial.ttf", sz)
+
+
+F, FS = _font(20), _font(15)
+
+
+def _rot(p, deg):
+    a = math.radians(deg)
+    dx, dy = p[0] - JOINT[0], p[1] - JOINT[1]
+    return (JOINT[0] + dx * math.cos(a) - dy * math.sin(a),
+            JOINT[1] + dx * math.sin(a) + dy * math.cos(a))
+
+
+def _zigzag(d, p0, p1, n=11, base=280.0):
+    (x0, y0), (x1, y1) = p0, p1
+    dx, dy = x1 - x0, y1 - y0
+    L = math.hypot(dx, dy)
+    amp = min(8 * (base / L) ** 2, L * 0.14)     # a short actuator has fatter waves
+    px, py = -dy / L, dx / L
+    pts = [(x0, y0)]
+    for i in range(n + 1):
+        t = 0.16 + 0.68 * i / n
+        s = 0 if i in (0, n) else amp * (1 if i % 2 else -1)
+        pts.append((x0 + dx * t + px * s, y0 + dy * t + py * s))
+    pts.append((x1, y1))
+    d.line(pts, fill="black", width=3, joint="curve")
+
+
+def frame(t, head_deg, busy, object_deg, levels, raster):
+    im = Image.new("RGB", (W, H), "white")
+    d = ImageDraw.Draw(im)
+    # A head turned to the left is a head whose left end has been pulled down, so
+    # on screen the bar turns the other way round from the angle.
+    tilt = -head_deg
+
+    # the object, fixed out there
+    a = math.radians(object_deg)
+    ox, oy = JOINT[0] - OBJECT_R * math.sin(a), JOINT[1] - OBJECT_R * math.cos(a)
+    d.ellipse([ox - 11, oy - 11, ox + 11, oy + 11], fill="black")
+    d.text((ox + 18, oy), "object", fill="black", font=FS, anchor="lm")
+
+    # stem and base do not move
+    d.line([JOINT, (JOINT[0], BASE_Y)], fill="black", width=3)
+    d.line([(JOINT[0] - 120, BASE_Y), (JOINT[0] + 120, BASE_Y)], fill="black", width=5)
+    for x in range(JOINT[0] - 120, JOINT[0] + 121, 16):
+        d.line([(x, BASE_Y + 3), (x - 13, BASE_Y + 20)], fill="black", width=2)
+
+    # the two actuators
+    for side, at in ((LEFT, (EYE_L + CELL * 2.25, EYE_B)), (RIGHT, (EYE_L + CELL * 6.75, EYE_B))):
+        _zigzag(d, _rot(at, tilt), (JOINT[0], BASE_Y))
+
+    # the eye
+    if busy:
+        x0, x1 = EYE_L + (busy - 1) * CELL, EYE_L + busy * CELL
+        d.polygon([_rot((x0, EYE_T), tilt), _rot((x1, EYE_T), tilt),
+                   _rot((x1, EYE_B), tilt), _rot((x0, EYE_B), tilt)], fill="black")
+        # The slice of the world that cell covers. It is measured from the joint,
+        # not from the cell itself: the retina takes the object to be far enough
+        # away that where along the head a cell sits makes no difference.
+        look = head_deg + ((EYE_CELLS + 1) / 2 - busy) * CELL_ANGLE_DEG
+        for edge in (look - CELL_ANGLE_DEG / 2, look + CELL_ANGLE_DEG / 2):
+            a = math.radians(edge)
+            ex, ey = JOINT[0] - 330 * math.sin(a), JOINT[1] - 330 * math.cos(a)
+            for k in range(0, 34, 2):
+                d.line([(JOINT[0] + (ex - JOINT[0]) * k / 34, JOINT[1] + (ey - JOINT[1]) * k / 34),
+                        (JOINT[0] + (ex - JOINT[0]) * (k + 1) / 34,
+                         JOINT[1] + (ey - JOINT[1]) * (k + 1) / 34)], fill="black", width=1)
+
+    for c in range(1, EYE_CELLS):
+        x = EYE_L + c * CELL
+        d.line([_rot((x, EYE_T), tilt), _rot((x, EYE_B), tilt)], fill="black", width=3)
+    corners = [(EYE_L, EYE_T), (EYE_L + EYE_CELLS * CELL, EYE_T),
+               (EYE_L + EYE_CELLS * CELL, EYE_B), (EYE_L, EYE_B), (EYE_L, EYE_T)]
+    d.line([_rot(p, tilt) for p in corners], fill="black", width=2, joint="curve")
+    d.ellipse([JOINT[0] - 12, JOINT[1] - 12, JOINT[0] + 12, JOINT[1] + 12],
+              fill="white", outline="black", width=3)
+
+    # the readout
+    d.text((20, 24), f"{t / 1000:5.2f} s", fill="black", font=F, anchor="lm")
+    d.text((20, 50), f"head {head_deg:+5.1f}°", fill="black", font=F, anchor="lm")
+    d.text((20, 76), f"cell {busy if busy else '—'}", fill="black", font=F, anchor="lm")
+    d.text((W - 20, 24), "motor babbling", fill="black", font=F, anchor="rm")
+    d.text((W - 20, 50), f"contraction  L {levels[LEFT]:3d}   R {levels[RIGHT]:3d}",
+           fill="black", font=FS, anchor="rm")
+
+    # the raster of the last couple of seconds
+    for top, bottom, label in ROWS:
+        d.line([(RASTER_L, bottom + 4), (RASTER_R, bottom + 4)], fill="black", width=1)
+        d.text((RASTER_L - 12, (top + bottom) / 2), label, fill="black", font=FS, anchor="rm")
+    for (rt, row, cell, on) in raster:
+        if t - rt > WINDOW_MS:
+            continue
+        x = RASTER_L + (RASTER_R - RASTER_L) * (1 - (t - rt) / WINDOW_MS)
+        top, bottom, _ = ROWS[row]
+        if row == 0:
+            y = top + (bottom - top) * (cell - 1) / (EYE_CELLS - 1)
+            d.line([(x, y - 4), (x, y + 4)], fill="black", width=3 if on else 1)
+        else:
+            d.line([(x, top), (x, bottom)], fill="black", width=2)
+    d.text((RASTER_L, 630), f"the last {WINDOW_MS / 1000:g} s", fill="black", font=FS, anchor="lm")
+    return im
+
+
+def animate(path="babbling.gif", seconds=8.0, seed=2, object_deg=18.0, every=5):
+    world = World(object_deg=object_deg)
+    vehicle = Vehicle1(world, rng=random.Random(seed))
+    clock, raster, frames = Clock(), deque(maxlen=4000), []
+    for t in clock.times(int(seconds * 1000)):
+        fired = vehicle.step(t)
+        for e in fired.get("retina", ()):
+            raster.append((t, 0, e.address[0], e.p is ON))
+        for row, side in ((1, LEFT), (2, RIGHT)):
+            for _ in fired.get(f"effector.{side}", ()):
+                raster.append((t, row, 0, True))
+        if t % (every * TICK_MS) == 0:
+            levels = {s: vehicle.actuators[s].level for s in (LEFT, RIGHT)}
+            frames.append(frame(t, vehicle.head_deg, vehicle.retina.busy_cell(),
+                                object_deg, levels, list(raster)))
+    frames[0].save(path, save_all=True, append_images=frames[1:],
+                   duration=every * TICK_MS, loop=0, optimize=True)
+    return path, len(frames)
+
+
+if __name__ == "__main__":
+    import argparse
+
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--out", default="babbling.gif")
+    p.add_argument("--seconds", type=float, default=8.0)
+    p.add_argument("--seed", type=int, default=2)
+    p.add_argument("--object", type=float, default=18.0)
+    a = p.parse_args()
+    path, n = animate(a.out, a.seconds, a.seed, a.object)
+    print(f"{n} frames -> {path}")
