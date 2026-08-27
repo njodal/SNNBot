@@ -137,3 +137,14 @@ The two events of a move only come in an order if something makes them. With the
 
 So a cell reports **becoming busy one cycle after it happens**, and becoming empty at once. A move is then always an OFF and, a cycle later, an ON, which is what this spec and [spec 001](001-neuromorphic-sensors.md) have described from the start.
 
+That is not the whole of it either. Cells that share their edges leave an object standing on one of them inside both at once, so the cell being reached reports before the cell being left and the lag does no more than cancel that head start out. The cells are half open — each takes its own edge and leaves the next one to its neighbour — so an object is never in two of them.
+
+### The wire out of each cell
+Every one of the 72 has its own wire to an effector, and several name the same one: they are moves that end in the same place, having started in different ones. Any one of them is enough to wake it.
+
+A cell that ends in the middle is the exception worth naming. Waking nothing there stops the head dead the moment the object arrives, which is precisely what leaves it drifting straight back out again, so those cells go on the way the object was going, gently. Gently needs an effector the ladder of spec 003 does not have: its slowest runs the head some eight degrees, near enough a whole cell, and a nudge that size overshoots every time. Hence a fifth, at 5 Hz — four degrees in its run, about the speed of the thing it is keeping up with.
+
+![Version C running the experiment](../docs/images/version_c.gif)
+
+Nothing happens at all for the first six seconds. The object is still, the eye is still, and an eye that only reports changes has nothing to report — this is the first version that cannot see a world at rest, and the babbling of [spec 002](002-vehicles.md) stops being a curiosity and becomes the only way it could ever start. Watch the eye's row of the raster afterwards: it stays nearly empty. Over the fifteen seconds this vehicle spends a quarter of the eye events Version B does and a tenth of Version A's, and it is the one that ends up closest to the object.
+
