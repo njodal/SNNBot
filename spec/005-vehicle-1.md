@@ -126,9 +126,11 @@ Watch the two effector rows of the raster: this vehicle moves because something 
 ## Version C: reflex with neuromorphic retina
 This is similar to Version B, but this time the retina is full neuromorphic, so it only respondo to changes.
 
-Remember that in this kind of retina there are two sensor per cell, one that fires when cell moves from empty to busy and other for busy to empty. So if the busy cell moves from cell 1 to cell 3, two events will be triggered: the first is the sensor from cell 1 busy to empty and later the empty to busy of cell 3 (order is important).
+Remember that in this kind of retina there are two sensor per cell, one that fires when cell moves from empty to busy (ON) and other for busy to empty (OFF). So if the busy cell moves from cell 1 to cell 3, two events will be triggered: the first is the OFF sensor of cell 1 and later the ON sensor of cell 3 (order is important).
 
-In this version the sensory layer is composed of correlation cells which have two inputs, one (the predecessor input) to an busy to empty sensor, and a successor to a empty to busy one, so the fire cells when there is a move from one cell to the other. This layer is fully connected, so there are 72 cells (9 sucessor input times 8 possible predessors).
+Note this version is incapable of centering an object that isn't moving. This restriction will be solved in later versions.
+
+The sensory layer is composed of correlation cells which have two inputs, one (the predecessor input) to an OFF sensor, and a successor to a ON one, so the fire cells when there is a move from one cell to the other. This layer is fully connected, so there are 72 cells (9 sucessor input times 8 possible predessors).
 
 Each of this cells is connected to an effector cell.
 
