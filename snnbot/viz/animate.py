@@ -12,9 +12,10 @@ from PIL import Image, ImageDraw, ImageFont
 
 from ..body.vehicle1 import LEFT, RIGHT, Vehicle1
 from ..clock import Clock
+from ..control import ProportionalController
 from ..events import ON
 from ..params import CELL_ANGLE_DEG, EYE_CELLS, TICK_MS
-from ..world import World
+from ..world import World, still_then_left
 
 W, H = 760, 640
 CELL = 60
@@ -57,7 +58,7 @@ def _zigzag(d, p0, p1, n=11, base=280.0):
     d.line(pts, fill="black", width=3, joint="curve")
 
 
-def frame(t, head_deg, busy, object_deg, levels, raster):
+def frame(t, head_deg, busy, object_deg, levels, raster, title="motor babbling"):
     im = Image.new("RGB", (W, H), "white")
     d = ImageDraw.Draw(im)
     # A head turned to the left is a head whose left end has been pulled down, so
@@ -110,8 +111,8 @@ def frame(t, head_deg, busy, object_deg, levels, raster):
     d.text((20, 24), f"{t / 1000:5.2f} s", fill="black", font=F, anchor="lm")
     d.text((20, 50), f"head {head_deg:+5.1f}°", fill="black", font=F, anchor="lm")
     d.text((20, 76), f"cell {busy if busy else '—'}", fill="black", font=F, anchor="lm")
-    d.text((W - 20, 24), "motor babbling", fill="black", font=F, anchor="rm")
-    d.text((W - 20, 50), f"contraction  L {levels[LEFT]:3d}   R {levels[RIGHT]:3d}",
+    d.text((W - 20, 24), title, fill="black", font=F, anchor="rm")
+    d.text((W - 20, 50), f"contraction  L {levels[LEFT]:5.1f}   R {levels[RIGHT]:5.1f}",
            fill="black", font=FS, anchor="rm")
 
     # the raster of the last couple of seconds
@@ -132,11 +133,14 @@ def frame(t, head_deg, busy, object_deg, levels, raster):
     return im
 
 
-def animate(path="babbling.gif", seconds=8.0, seed=2, object_deg=18.0, every=5):
-    world = World(object_deg=object_deg)
-    vehicle = Vehicle1(world, rng=random.Random(seed))
+def animate(path="babbling.gif", seconds=8.0, seed=2, object_deg=18.0, every=5,
+            controller=None, moving=False):
+    world = World(object_deg=object_deg,
+                  path=still_then_left(object_deg) if moving else None)
+    vehicle = Vehicle1(world, rng=random.Random(seed), controller=controller)
     clock, raster, frames = Clock(), deque(maxlen=4000), []
     for t in clock.times(int(seconds * 1000)):
+        world.update(t)          # the world moves whether or not anyone looks
         fired = vehicle.step(t)
         for e in fired.get("retina", ()):
             raster.append((t, 0, e.address[0], e.p is ON))
@@ -146,7 +150,8 @@ def animate(path="babbling.gif", seconds=8.0, seed=2, object_deg=18.0, every=5):
         if t % (every * TICK_MS) == 0:
             levels = {s: vehicle.actuators[s].level for s in (LEFT, RIGHT)}
             frames.append(frame(t, vehicle.head_deg, vehicle.retina.busy_cell(),
-                                object_deg, levels, list(raster)))
+                                world.object_deg, levels, list(raster),
+                                "Version A: ground truth" if controller else "motor babbling"))
     frames[0].save(path, save_all=True, append_images=frames[1:],
                    duration=every * TICK_MS, loop=0, optimize=True)
     return path, len(frames)
@@ -160,6 +165,10 @@ if __name__ == "__main__":
     p.add_argument("--seconds", type=float, default=8.0)
     p.add_argument("--seed", type=int, default=2)
     p.add_argument("--object", type=float, default=18.0)
+    p.add_argument("--pid", action="store_true", help="Version A, the ground truth")
+    p.add_argument("--moving", action="store_true", help="the object slides left")
     a = p.parse_args()
-    path, n = animate(a.out, a.seconds, a.seed, a.object)
+    path, n = animate(a.out, a.seconds, a.seed, a.object,
+                      controller=ProportionalController() if a.pid else None,
+                      moving=a.moving)
     print(f"{n} frames -> {path}")

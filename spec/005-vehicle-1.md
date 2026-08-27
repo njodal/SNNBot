@@ -75,6 +75,15 @@ The controller runs once every **10 ms**, the same tick as the simulator of [spe
 
 Changing it is not free, though. The eye slows down as the error shrinks, but only at each tick: between ticks it keeps turning at whatever rate it was last told. So the eye closes `Kp × tick` of the gap on every step, and the pair has a limit — past `Kp × tick = 1` it starts overshooting, and past 2 it never settles. At 10 ms there is room to spare, since that would need a `Kp` above 100. At a tick of a second it would not: `Kp = 2` would be enough to break it.
 
+### The experiment
+The run both versions are put through, so that whatever is measured is measured on the same thing:
+
+The object waits **one second** where it is, then slides **to the left for one second**, then waits again. The first second is there to let the vehicle settle, so that what follows is a response and not a leftover of the start. The second is the part that asks something of it: a target that moves is a target the vehicle has to keep up with, not merely find once.
+
+![Version A running the experiment](../docs/images/version_a.gif)
+
+Two things worth watching in it. The eye comes to rest with the object at the **edge** of the middle cell rather than at its centre — the error is zero anywhere inside cell 5, so the eye stops the moment the object crosses in. And while the object is moving the eye **falls a cell behind** and stays there: the error can only take the values a whole number of cells allows, so a controller that reads it can only ever turn at one of a handful of speeds, and picks the one nearest to what the object is doing.
+
 ## Open questions
 
 - What counts as success? Time taken to bring the object to cell 5, the fraction of a run spent there, something else. Until that is settled Version A is a vehicle that works, but not yet a measurement anything can be compared against.
