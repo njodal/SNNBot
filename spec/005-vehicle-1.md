@@ -90,6 +90,17 @@ And while the object is creeping left the eye **chatters at the cell boundary** 
 
 Which is worth knowing before the number that judges a run is settled: this vehicle is at its noisiest exactly where it is doing best. A faster object is easier on it — it simply settles a cell behind and stays there. Curing the chatter would mean hysteresis, or a dead zone around zero error, and neither is decided yet.
 
-## Open questions
+### Open questions
 
 - What counts as success? Time taken to bring the object to cell 5, the fraction of a run spent there, something else. Until that is settled Version A is a vehicle that works, but not yet a measurement anything can be compared against.
+
+## Version B: reflex based
+The goal of this version is to evaluate how good can be a controller where the sensory layer and the effector layer are directly connected (without a cortex), so it's reflex based.
+
+Also the connection comes hard wired, no learning is done.
+
+For each cell in the retina there are a cell in the sensory layer that fires when the retina cell fires. This sensory cell is connected with an effector cell, it's is assumed a lateral inhibition mechanisms in the effector layer, so only one effector cell is active (the last activated one).
+
+
+
+For this version the Version A retina will be used (it's fires in the busy cell). 
