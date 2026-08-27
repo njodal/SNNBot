@@ -6,15 +6,17 @@ import random
 from .body.vehicle1 import Vehicle1
 from .clock import Clock
 from .control import ProportionalController
+from .layers.sensory import Reflex
 
 from .recorder import Recorder
 from .world import World, still_then_left
 
 
 def run(seconds=10.0, seed=1, object_deg=18.0, wired=False, controller=None,
-        path=None):
+        path=None, reflex=None):
     world = World(object_deg=object_deg, path=path)
-    vehicle = Vehicle1(world, rng=random.Random(seed), wired=wired, controller=controller)
+    vehicle = Vehicle1(world, rng=random.Random(seed), wired=wired,
+                       controller=controller, reflex=reflex)
     recorder, clock = Recorder(), Clock()
     for t in clock.times(int(seconds * 1000)):
         world.update(t)          # the world moves whether or not anyone looks
@@ -29,15 +31,18 @@ def main():
     p.add_argument("--seed", type=int, default=1)
     p.add_argument("--object", type=float, default=18.0, help="degrees left of ahead")
     p.add_argument("--pid", action="store_true", help="run Version A, the ground truth")
+    p.add_argument("--reflex", action="store_true", help="run Version B, the reflex")
     p.add_argument("--moving", action="store_true",
                    help="the object waits a second, then slides left for another")
     args = p.parse_args()
 
     controller = ProportionalController() if args.pid else None
+    reflex = Reflex() if args.reflex else None
     path = still_then_left(args.object) if args.moving else None
     vehicle, rec = run(args.seconds, args.seed, args.object, controller=controller,
-                       path=path)
-    print(f"{args.seconds:g} s of {'the ground truth' if args.pid else 'babbling'}, "
+                       path=path, reflex=reflex)
+    what = 'the ground truth' if args.pid else 'the reflex' if args.reflex else 'babbling'
+    print(f"{args.seconds:g} s of {what}, "
           f"seed {args.seed}, object at {args.object:g} degrees\n")
     for source, n in sorted(rec.counts().items()):
         print(f"  {n:6d}  {source}")

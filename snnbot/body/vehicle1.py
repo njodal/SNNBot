@@ -23,9 +23,11 @@ class Vehicle1:
     step aside and the controller turns the head directly.
     """
 
-    def __init__(self, world, rng=None, wired=False, controller=None):
+    def __init__(self, world, rng=None, wired=False, controller=None, reflex=None):
         self.world = world
         self.controller = controller
+        self.reflex = reflex
+        wired = wired or reflex is not None    # a reflex needs something to spike
         self._last_t = None
         self.retina = Retina()
         self.actuators = {LEFT: Actuator(), RIGHT: Actuator()}
@@ -58,6 +60,13 @@ class Vehicle1:
             rate = self.controller.update(t, self.retina.busy_cell())
             self.turn(rate * elapsed / 1000)
             return self._sense(t, fired)
+
+        if self.reflex is not None:
+            # Version B: the eye read as a number — the way Version A reads it,
+            # until the spiking eye arrives — straight into the effector layer.
+            sensed = self.reflex.update(t, self.retina.busy_cell(), self.effectors)
+            if sensed:
+                fired["sensory"] = sensed
 
         # the effector layer drives the actuators
         for side, layer in self.effectors.items():

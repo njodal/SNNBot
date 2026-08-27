@@ -13,6 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 from ..body.vehicle1 import LEFT, RIGHT, Vehicle1
 from ..clock import Clock
 from ..control import ProportionalController
+from ..layers.sensory import Reflex
 from ..events import ON
 from ..params import CELL_ANGLE_DEG, EYE_CELLS, TICK_MS
 from ..world import World, still_then_left
@@ -142,10 +143,11 @@ def frame(t, head_deg, busy, object_deg, levels, raster, title="motor babbling")
 
 
 def animate(path="babbling.gif", seconds=8.0, seed=2, object_deg=18.0, every=5,
-            controller=None, moving=False):
+            controller=None, moving=False, reflex=None):
     world = World(object_deg=object_deg,
                   path=still_then_left(object_deg) if moving else None)
-    vehicle = Vehicle1(world, rng=random.Random(seed), controller=controller)
+    vehicle = Vehicle1(world, rng=random.Random(seed), controller=controller,
+                       reflex=reflex)
     clock, raster, frames = Clock(), deque(maxlen=4000), []
     for t in clock.times(int(seconds * 1000)):
         world.update(t)          # the world moves whether or not anyone looks
@@ -159,7 +161,8 @@ def animate(path="babbling.gif", seconds=8.0, seed=2, object_deg=18.0, every=5,
             levels = {s: vehicle.actuators[s].level for s in (LEFT, RIGHT)}
             frames.append(frame(t, vehicle.head_deg, vehicle.retina.busy_cell(),
                                 world.object_deg, levels, list(raster),
-                                "Version A: ground truth" if controller else "motor babbling"))
+                                "Version A: ground truth" if controller else
+                                "Version B: reflex" if reflex else "motor babbling"))
     frames[0].save(path, save_all=True, append_images=frames[1:],
                    duration=every * TICK_MS, loop=0, optimize=True)
     return path, len(frames)
@@ -174,9 +177,10 @@ if __name__ == "__main__":
     p.add_argument("--seed", type=int, default=2)
     p.add_argument("--object", type=float, default=18.0)
     p.add_argument("--pid", action="store_true", help="Version A, the ground truth")
+    p.add_argument("--reflex", action="store_true", help="Version B, the reflex")
     p.add_argument("--moving", action="store_true", help="the object slides left")
     a = p.parse_args()
     path, n = animate(a.out, a.seconds, a.seed, a.object,
                       controller=ProportionalController() if a.pid else None,
-                      moving=a.moving)
+                      moving=a.moving, reflex=Reflex() if a.reflex else None)
     print(f"{n} frames -> {path}")
