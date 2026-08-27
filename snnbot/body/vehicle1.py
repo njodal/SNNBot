@@ -27,6 +27,7 @@ class Vehicle1:
         self.world = world
         self.controller = controller
         self.reflex = reflex
+        self._last_eye = []
         wired = wired or reflex is not None    # a reflex needs something to spike
         self._last_t = None
         self.retina = Retina()
@@ -64,7 +65,8 @@ class Vehicle1:
         if self.reflex is not None:
             # Version B: the eye read as a number — the way Version A reads it,
             # until the spiking eye arrives — straight into the effector layer.
-            sensed = self.reflex.update(t, self.retina.busy_cell(), self.effectors)
+            sensed = self.reflex.update(t, self.retina.busy_cell(), self._last_eye,
+                                        self.effectors)
             if sensed:
                 fired["sensory"] = sensed
 
@@ -83,6 +85,7 @@ class Vehicle1:
     def _sense(self, t, fired):
         """What the body and the world are now, as spikes."""
         eye = self.retina.update(t, self.world.object_deg, self.head_deg)
+        self._last_eye = eye        # what the correlation cells read next moment
         if eye:
             fired["retina"] = eye
         for side, array in self.proprioception.items():

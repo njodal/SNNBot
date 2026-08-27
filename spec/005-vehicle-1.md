@@ -78,7 +78,7 @@ Changing it is not free, though. The eye slows down as the error shrinks, but on
 ### The experiment
 The run both versions are put through, so that whatever is measured is measured on the same thing:
 
-The object waits **three seconds** where it is, then slides **to the left for three seconds**, then waits three more. The first stretch is there to let the vehicle settle, so that what follows is a response and not a leftover of the start. The middle one is the part that asks something of it: a target that moves is a target the vehicle has to keep up with, not merely find once. The last is for it to recover in.
+The object waits **three seconds** where it is, slides **to the left for three**, turns and goes **back to the right for six**, and is then still again. The first stretch is there to let the vehicle settle, so that what follows is a response and not a leftover of the start. The next asks it to keep up with something rather than merely find it once. The turn asks the most of it: following a thing is not the same as following it back, and a vehicle that only ever learned one direction fails exactly there.
 
 ![Version A running the experiment](../docs/images/version_a.gif)
 
@@ -131,4 +131,9 @@ Remember that in this kind of retina there are two sensor per cell, one that fir
 In this version the sensory layer is composed of correlation cells which have two inputs, one (the predecessor input) to an busy to empty sensor, and a successor to a empty to busy one, so the fire cells when there is a move from one cell to the other. This layer is fully connected, so there are 72 cells (9 sucessor input times 8 possible predessors).
 
 Each of this cells is connected to an effector cell.
+
+### The order the cells read
+The two events of a move only come in an order if something makes them. With the cells of the eye covering the world edge to edge and the object a point, it leaves one cell in the very instant it reaches the next, and both events carry the same time — a correlation cell waiting for its predecessor to arrive first would wait forever.
+
+So a cell reports **becoming busy one cycle after it happens**, and becoming empty at once. A move is then always an OFF and, a cycle later, an ON, which is what this spec and [spec 001](001-neuromorphic-sensors.md) have described from the start.
 

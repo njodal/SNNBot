@@ -22,19 +22,48 @@ def test_the_object_at_rest_is_seen_by_cell_3():
 
 
 def test_turning_the_head_slides_the_object_to_cell_5():
-    """Spec 004: the pair of pictures of spec 005 is reproducible."""
+    """Spec 004: the pair of pictures of spec 005 is reproducible.
+
+    The cell it leaves says so at once and the cell it reaches a cycle later, so
+    the two events of the move arrive in that order and never together.
+    """
     r = Retina()
     r.update(0, OBJECT, AT_REST)
-    events = r.update(100, OBJECT, TURNED_LEFT)
-    assert [str(e) for e in events] == ["3 off", "5 on"]
+    assert [str(e) for e in r.update(10, OBJECT, AT_REST)] == ["3 on"]
+    assert [str(e) for e in r.update(100, OBJECT, TURNED_LEFT)] == ["3 off"]
+    assert [str(e) for e in r.update(110, OBJECT, TURNED_LEFT)] == ["5 on"]
     assert r.busy_cell() == 5
+
+
+def test_the_cells_never_share_an_edge():
+    """An object exactly on a boundary is in one cell, never in two."""
+    r = Retina()
+    for boundary in (4.5, 13.5, 22.5, -4.5, -13.5):
+        r.update(0, boundary, AT_REST)
+        assert sum(c.occupied for c in r.cells) == 1
+
+
+def test_a_move_is_always_an_off_and_then_an_on():
+    """What the correlation cells of Version C read: the order, never a tie."""
+    r = Retina()
+    r.update(0, OBJECT, AT_REST)
+    r.update(10, OBJECT, AT_REST)
+    head, seen = 0.0, []
+    for t in range(10, 4000, 10):
+        head += 0.2
+        seen += [(t, e.p, e.address[0]) for e in r.update(t, OBJECT, head)]
+    moves = [(a, b) for a, b in zip(seen, seen[1:]) if a[1] is OFF]
+    assert moves
+    for (t_off, _, off_cell), (t_on, p, on_cell) in moves:
+        assert p is ON and t_on > t_off and abs(on_cell - off_cell) == 1
 
 
 def test_it_says_nothing_while_nothing_changes():
     """Spec 001: a sensor emits nothing at all while its input is constant."""
     r = Retina()
     r.update(0, OBJECT, AT_REST)
-    assert stream(r, [(t, OBJECT, AT_REST) for t in range(10, 1000, 10)]) == []
+    r.update(10, OBJECT, AT_REST)          # the object turning up is a change
+    assert stream(r, [(t, OBJECT, AT_REST) for t in range(20, 1000, 10)]) == []
 
 
 def test_two_events_from_one_cell_are_never_closer_than_t_ref():

@@ -9,8 +9,8 @@ without having to model any lateral inhibition.
 from dataclasses import dataclass
 from typing import Callable, Optional
 
-from .params import (OBJECT_MOVING_MS, OBJECT_RATE_DEG_S, OBJECT_START_DEG,
-                     OBJECT_STILL_MS)
+from .params import (OBJECT_LEFT_MS, OBJECT_RATE_DEG_S, OBJECT_RIGHT_MS,
+                     OBJECT_START_DEG, OBJECT_STILL_MS)
 
 
 @dataclass
@@ -27,15 +27,24 @@ class World:
             self.object_deg = self.path(t)
 
 
-def still_then_left(start_deg=OBJECT_START_DEG, still_ms=OBJECT_STILL_MS,
-                    rate=OBJECT_RATE_DEG_S, moving_ms=OBJECT_MOVING_MS):
-    """The experiment: a second of nothing, then a second sliding to the left.
+def experiment_path(start_deg=OBJECT_START_DEG, still_ms=OBJECT_STILL_MS,
+                    rate=OBJECT_RATE_DEG_S, left_ms=OBJECT_LEFT_MS,
+                    right_ms=OBJECT_RIGHT_MS):
+    """Where the object is through the experiment of spec 005.
 
-    The still part is there to let the vehicle settle before anything is asked
-    of it, so that what happens next is a response and not a leftover.
+    A while of nothing, then off to the left, then a longer while back to the
+    right, and still again. The still part at the start is there to let the
+    vehicle settle, so that what follows is a response and not a leftover. The
+    turn is there because following something is not the same as following it
+    back: it is the reversal that asks the vehicle whether it noticed.
     """
     def where(t):
         if t <= still_ms:
             return start_deg
-        return start_deg + rate * min(t - still_ms, moving_ms) / 1000
+        gone_left = min(t - still_ms, left_ms) / 1000
+        deg = start_deg + rate * gone_left
+        if t <= still_ms + left_ms:
+            return deg
+        gone_right = min(t - still_ms - left_ms, right_ms) / 1000
+        return deg - rate * gone_right
     return where

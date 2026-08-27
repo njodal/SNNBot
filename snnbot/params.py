@@ -13,6 +13,11 @@ MAX_RATE_HZ = 1000 // TICK_MS     # 100 Hz, the fastest anything can emit
 EYE_CELLS = 9                     # SPEC 005: 1x9
 CELL_ANGLE_DEG = 9.0              # PROVISIONAL: spec 005 leaves it to be fixed
 T_REF_MS = TICK_MS                # SPEC 001, floored by the spike duration
+ON_LAG_MS = TICK_MS               # SPEC 005: a cell reports becoming busy one
+                                  # cycle after it happens, while it reports
+                                  # becoming empty at once. That gap is what puts
+                                  # the two events of a move in an order, which is
+                                  # what the correlation cells of version C read.
 
 # --- proprioception: spec 001 (threshold based), spec 005 ---
 PROP_SENSORS = 10                 # SPEC 005: 1x10 per actuator
@@ -39,7 +44,14 @@ DEG_PER_UNIT = 0.4                # PROVISIONAL: head angle per unit of imbalanc
 
 # --- the effector layer: spec 003 ---
 # (frequency in Hz, duration in ms). Every period must be a whole number of ticks.
-EFFECTORS = ((100, 200), (50, 300), (20, 500), (10, 1000))   # PROVISIONAL
+STEERING = ((100, 200), (50, 300), (20, 500), (10, 1000))    # PROVISIONAL
+# One more, gentler than any of the four, for going along with an object that
+# has just reached the middle of the eye. The slowest of the ladder moves the
+# head eight degrees in its run, near enough a whole cell, so using it to nudge
+# overshoots every time. This one moves four, at four degrees a second — about
+# the speed of the thing it is meant to keep up with.
+ACCOMPANY = ((5, 1000),)                                     # PROVISIONAL
+EFFECTORS = STEERING + ACCOMPANY
 
 # How far one spike turns the head: it moves its own actuator by STEP and, since
 # the two are coupled, the antagonist by STEP the other way.
@@ -53,11 +65,18 @@ KP = 2.0                          # SPEC 005: 1/s, so the eye closes the gap in
 MAX_TURN_RATE = MAX_RATE_HZ * DEG_PER_SPIKE   # SPEC 005: 80 deg/s, what the
                                   # spiking vehicle manages at its fastest
 
+# --- Version C, the correlation cells: spec 005 ---
+CORRELATION_WINDOW_MS = 3 * TICK_MS   # PROVISIONAL: how long after its
+                                  # predecessor a successor still counts as the
+                                  # same move. The lag makes it exactly one
+                                  # cycle, so this only has to allow for that.
+
 # --- the experiment: spec 005 ---
 OBJECT_START_DEG = 18.0           # where the object waits, left of straight ahead
 OBJECT_STILL_MS = 3000            # how long it stays there before moving
-OBJECT_RATE_DEG_S = 5.0            # PROVISIONAL: how fast it then slides left
-OBJECT_MOVING_MS = 3000           # and for how long
+OBJECT_RATE_DEG_S = 5.0            # PROVISIONAL: how fast it then slides
+OBJECT_LEFT_MS = 3000             # how long it goes left
+OBJECT_RIGHT_MS = 6000            # and then how long back to the right
 
 # --- babbling: spec 002 ---
 BABBLE_EVERY_MS = 2000            # SPEC 002: about one time in two seconds
