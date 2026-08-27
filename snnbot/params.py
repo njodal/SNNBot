@@ -41,6 +41,24 @@ DEG_PER_UNIT = 0.4                # PROVISIONAL: head angle per unit of imbalanc
 # (frequency in Hz, duration in ms). Every period must be a whole number of ticks.
 EFFECTORS = ((100, 200), (50, 300), (20, 500), (10, 1000))   # PROVISIONAL
 
+# How far one spike turns the head: it moves its own actuator by STEP and, since
+# the two are coupled, the antagonist by STEP the other way.
+DEG_PER_SPIKE = 2 * STEP * DEG_PER_UNIT
+
+# --- Version A, the ground truth controller: spec 005 ---
+CONTROL_TICK_MS = TICK_MS         # SPEC 005: it acts as often as the spiking one
+KP = 2.0                          # PROVISIONAL: 1/s, so the eye closes the gap in
+                                  # about half a second. Kp * tick stays far below
+                                  # the 1 where it would start to overshoot.
+MAX_TURN_RATE = MAX_RATE_HZ * DEG_PER_SPIKE   # SPEC 005: 80 deg/s, what the
+                                  # spiking vehicle manages at its fastest
+
+# --- the experiment: spec 005 ---
+OBJECT_START_DEG = 18.0           # where the object waits, left of straight ahead
+OBJECT_STILL_MS = 1000            # how long it stays there before moving
+OBJECT_RATE_DEG_S = 20.0          # PROVISIONAL: how fast it then slides left
+OBJECT_MOVING_MS = 1000           # and for how long
+
 # --- babbling: spec 002 ---
 BABBLE_EVERY_MS = 2000            # SPEC 002: about one time in two seconds
 # Spec 002 also gives half a second as the length of a babble. That is read here

@@ -57,6 +57,7 @@ snnbot/
   layers/
     sensory.py
     effector.py     the effector cells, wired and unwired
+  control.py        version A of spec 005, the ground truth controller
   cortex/
   viz/
     live.py         pygame, the vehicle moving while it runs

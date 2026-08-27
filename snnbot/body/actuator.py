@@ -16,7 +16,11 @@ class Actuator:
 
     def on_spike(self, t):
         """One spike, one step, always in the same direction."""
-        self.level = min(CONTRACTION_MAX, self.level + self._step)
+        self.contract_by(t, self._step)
+
+    def contract_by(self, t, amount):
+        """Contract by an arbitrary amount, for a controller that is not spiking."""
+        self.level = min(CONTRACTION_MAX, self.level + amount)
         self._last_spike_t = t
 
     def stretched_by(self, other_step):
