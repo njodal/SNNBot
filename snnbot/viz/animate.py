@@ -18,12 +18,17 @@ from ..params import CELL_ANGLE_DEG, EYE_CELLS, TICK_MS
 from ..world import World, still_then_left
 
 W, H = 760, 640
-CELL = 60
+CELL = 34
 EYE_L = (W - EYE_CELLS * CELL) // 2
-EYE_T, EYE_B = 230, 230 + CELL
+EYE_T, EYE_B = 250, 250 + CELL
 JOINT = (W // 2, EYE_B)
-BASE_Y = 430
-OBJECT_R = 250                      # how far out the object is drawn
+BASE_Y = 440
+
+# How far out to draw the object. The eye works in angles measured from the
+# joint, so a perpendicular dropped from the object onto the head only lands on
+# the cell that is actually seeing it if the object is drawn at this distance —
+# the one where a cell's width and a cell's angle are the same thing.
+OBJECT_R = CELL * 180 / (math.pi * CELL_ANGLE_DEG)
 WINDOW_MS = 2000                    # how much of the past the raster shows
 RASTER_L, RASTER_R = 170, W - 20
 ROWS = ((500, 552, "eye"), (566, 584, "effector L"), (594, 612, "effector R"))
@@ -43,7 +48,10 @@ def _rot(p, deg):
             JOINT[1] + dx * math.sin(a) + dy * math.cos(a))
 
 
-def _zigzag(d, p0, p1, n=11, base=280.0):
+REST_LENGTH = math.hypot(CELL * 2.25, BASE_Y - EYE_B)
+
+
+def _zigzag(d, p0, p1, n=11, base=REST_LENGTH):
     (x0, y0), (x1, y1) = p0, p1
     dx, dy = x1 - x0, y1 - y0
     L = math.hypot(dx, dy)
@@ -66,8 +74,8 @@ def frame(t, head_deg, busy, object_deg, levels, raster, title="motor babbling")
     tilt = -head_deg
 
     # the object, fixed out there
-    a = math.radians(object_deg)
-    ox, oy = JOINT[0] - OBJECT_R * math.sin(a), JOINT[1] - OBJECT_R * math.cos(a)
+    ang = math.radians(object_deg)
+    ox, oy = JOINT[0] - OBJECT_R * math.sin(ang), JOINT[1] - OBJECT_R * math.cos(ang)
     d.ellipse([ox - 11, oy - 11, ox + 11, oy + 11], fill="black")
     d.text((ox + 18, oy), "object", fill="black", font=FS, anchor="lm")
 
@@ -86,17 +94,17 @@ def frame(t, head_deg, busy, object_deg, levels, raster, title="motor babbling")
         x0, x1 = EYE_L + (busy - 1) * CELL, EYE_L + busy * CELL
         d.polygon([_rot((x0, EYE_T), tilt), _rot((x1, EYE_T), tilt),
                    _rot((x1, EYE_B), tilt), _rot((x0, EYE_B), tilt)], fill="black")
-        # The slice of the world that cell covers. It is measured from the joint,
-        # not from the cell itself: the retina takes the object to be far enough
-        # away that where along the head a cell sits makes no difference.
-        look = head_deg + ((EYE_CELLS + 1) / 2 - busy) * CELL_ANGLE_DEG
-        for edge in (look - CELL_ANGLE_DEG / 2, look + CELL_ANGLE_DEG / 2):
-            a = math.radians(edge)
-            ex, ey = JOINT[0] - 330 * math.sin(a), JOINT[1] - 330 * math.cos(a)
-            for k in range(0, 34, 2):
-                d.line([(JOINT[0] + (ex - JOINT[0]) * k / 34, JOINT[1] + (ey - JOINT[1]) * k / 34),
-                        (JOINT[0] + (ex - JOINT[0]) * (k + 1) / 34,
-                         JOINT[1] + (ey - JOINT[1]) * (k + 1) / 34)], fill="black", width=1)
+        # Which cell of the head the object falls on, dropped straight onto it.
+        a = math.radians(tilt)
+        ux, uy = math.cos(a), math.sin(a)                  # along the head
+        mx, my = _rot((EYE_L + EYE_CELLS * CELL / 2, (EYE_T + EYE_B) / 2), tilt)
+        along = (ox - mx) * ux + (oy - my) * uy
+        fx, fy = mx + along * ux, my + along * uy          # the foot on the head
+        sx, sy = ox + (ox - fx) * 0.35, oy + (oy - fy) * 0.35
+        for k in range(0, 26, 2):
+            d.line([(sx + (fx - sx) * k / 26, sy + (fy - sy) * k / 26),
+                    (sx + (fx - sx) * (k + 1) / 26, sy + (fy - sy) * (k + 1) / 26)],
+                   fill="black", width=1)
 
     for c in range(1, EYE_CELLS):
         x = EYE_L + c * CELL

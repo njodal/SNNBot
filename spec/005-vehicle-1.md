@@ -67,7 +67,7 @@ So `Ki = Kd = 0`, and what is left is
 rate of turn = Kp × error
 ```
 
-in degrees per second, capped at ±80. With the error in degrees, `Kp` is in units of one over seconds: it is a rate constant, and `1 / Kp` is roughly how long the eye takes to close the gap. `Kp = 1` means about a second, `Kp = 2` about half of one.
+in degrees per second, capped at ±80. With the error in degrees, `Kp` is in units of one over seconds: it is a rate constant, and `1 / Kp` is roughly how long the eye takes to close the gap. **`Kp = 2`**, so the eye takes about half a second to catch what it is looking at.
 
 The output is a plain continuous number — unlike the spiking vehicle, which moves the head in steps of 0.8 degrees, this one turns it smoothly.
 
@@ -78,13 +78,18 @@ Changing it is not free, though. The eye slows down as the error shrinks, but on
 ### The experiment
 The run both versions are put through, so that whatever is measured is measured on the same thing:
 
-The object waits **one second** where it is, then slides **to the left for one second**, then waits again. The first second is there to let the vehicle settle, so that what follows is a response and not a leftover of the start. The second is the part that asks something of it: a target that moves is a target the vehicle has to keep up with, not merely find once.
+The object waits **three seconds** where it is, then slides **to the left for three seconds**, then waits three more. The first stretch is there to let the vehicle settle, so that what follows is a response and not a leftover of the start. The middle one is the part that asks something of it: a target that moves is a target the vehicle has to keep up with, not merely find once. The last is for it to recover in.
 
 ![Version A running the experiment](../docs/images/version_a.gif)
 
-Two things worth watching in it. The eye comes to rest with the object at the **edge** of the middle cell rather than at its centre — the error is zero anywhere inside cell 5, so the eye stops the moment the object crosses in. And while the object is moving the eye **falls a cell behind** and stays there: the error can only take the values a whole number of cells allows, so a controller that reads it can only ever turn at one of a handful of speeds, and picks the one nearest to what the object is doing.
+Two things worth watching in it, both of them consequences of an error that can only take the values a whole number of cells allows.
+
+The eye comes to rest with the object at the **edge** of the middle cell rather than at its centre: the error is zero anywhere inside cell 5, so the eye stops the moment the object crosses in.
+
+And while the object is creeping left the eye **chatters at the cell boundary** — look at how the eye's row of the raster fills up. Inside cell 5 the error is zero and the eye stands still while the object drifts out of it; the moment it crosses into cell 4 the error jumps a whole cell at once, the eye lunges at three times the speed the object is moving, and puts it back where it was. The head ends up trembling against the edge of a cell, and the eye fires about a hundred times a second over an object that is barely moving.
+
+Which is worth knowing before the number that judges a run is settled: this vehicle is at its noisiest exactly where it is doing best. A faster object is easier on it — it simply settles a cell behind and stays there. Curing the chatter would mean hysteresis, or a dead zone around zero error, and neither is decided yet.
 
 ## Open questions
 
 - What counts as success? Time taken to bring the object to cell 5, the fraction of a run spent there, something else. Until that is settled Version A is a vehicle that works, but not yet a measurement anything can be compared against.
-- What is `Kp`? Being a rate constant it can at least be reasoned about: how long should the eye take to catch what it is looking at?
