@@ -18,3 +18,7 @@ Design specifications for SNNBot.
 | 003 | [Neuromorphic actuators](003-neuromorphic-actuators.md)      | draft  |
 | 004 | [Simulator](004-simulator.md)                                | draft  |
 | 005 | [Vehicle 1](005-vehicle-1.md)                                | draft  |
+| 006 | [Vehicle 1, Version A: PID](006-vehicle-1-a-pid.md)           | draft  |
+| 007 | [Vehicle 1, Version B: reflex](007-vehicle-1-b-reflex.md)     | draft  |
+| 008 | [Vehicle 1, Version C: neuromorphic](008-vehicle-1-c-neuromorphic.md) | draft |
+| 009 | [Vehicle 1, Version D: learnt](009-vehicle-1-d-learnt.md)     | draft  |

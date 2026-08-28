@@ -32,5 +32,14 @@ Design specifications live in [`spec/`](spec/).
 - [004 — Simulator](spec/004-simulator.md): how the vehicles are run on a laptop —
   the time base, the stack, and what the vehicle is not allowed to see.
 - [005 — Vehicle 1](spec/005-vehicle-1.md): the first vehicle — one eye, two
-  actuators that turn it, and nothing else.
+  actuators that turn it, and nothing else — and the experiment every version of
+  it is put through.
+- [006 — Version A](spec/006-vehicle-1-a-pid.md): a plain controller reading
+  numbers, as a ground truth to measure the others against.
+- [007 — Version B](spec/007-vehicle-1-b-reflex.md): the sensory layer wired
+  straight to the effectors, no cortex and no learning.
+- [008 — Version C](spec/008-vehicle-1-c-neuromorphic.md): the same reflex, on an
+  eye that reports only change.
+- [009 — Version D](spec/009-vehicle-1-d-learnt.md): the same again, with the
+  wiring left for the vehicle to find for itself.
 
