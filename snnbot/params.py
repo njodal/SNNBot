@@ -71,6 +71,17 @@ CORRELATION_WINDOW_MS = 3 * TICK_MS   # PROVISIONAL: how long after its
                                   # same move. The lag makes it exactly one
                                   # cycle, so this only has to allow for that.
 
+# --- Version D, learning the wiring: spec 005 ---
+LEARNING_RATE = 0.3               # PROVISIONAL: how much one reinforcing spike
+                                  # moves a weight
+ELIGIBILITY_MS = 800              # PROVISIONAL: how long a connection stays
+                                  # eligible for the credit of what follows it
+EXPLORE = 0.15                    # PROVISIONAL: how often it tries something
+                                  # other than the best it knows
+WEIGHT_MAX = 1.0                  # PROVISIONAL: the strongest a connection gets.
+                                  # Without a ceiling an early run of luck piles
+                                  # up more weight than later evidence can undo.
+
 # --- the experiment: spec 005 ---
 OBJECT_START_DEG = 18.0           # where the object waits, left of straight ahead
 OBJECT_STILL_MS = 3000            # how long it stays there before moving

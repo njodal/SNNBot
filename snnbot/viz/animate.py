@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 from ..body.vehicle1 import LEFT, RIGHT, Vehicle1
 from ..clock import Clock
 from ..control import ProportionalController
-from ..layers.sensory import CorrelationReflex, Reflex
+from ..layers.sensory import CorrelationReflex, LearningReflex, Reflex
 from ..events import ON
 from ..params import CELL_ANGLE_DEG, EYE_CELLS, TICK_MS
 from ..world import World, experiment_path
@@ -162,12 +162,26 @@ def animate(path="babbling.gif", seconds=8.0, seed=2, object_deg=18.0, every=5,
             frames.append(frame(t, vehicle.head_deg, vehicle.retina.busy_cell(),
                                 world.object_deg, levels, list(raster),
                                 "Version A: ground truth" if controller else
-                                ("Version C: correlation cells"
+                                ("Version D: what it learnt"
+                                 if type(reflex).__name__ == "LearningReflex"
+                                 else "Version C: correlation cells"
                                  if type(reflex).__name__ == "CorrelationReflex"
                                  else "Version B: reflex") if reflex else "motor babbling"))
     frames[0].save(path, save_all=True, append_images=frames[1:],
                    duration=every * TICK_MS, loop=0, optimize=True)
     return path, len(frames)
+
+
+def _taught(a):
+    """Version D, put through its schooling before anyone watches."""
+    from ..body.vehicle1 import Vehicle1
+    from ..clock import Clock
+    reflex = LearningReflex(random.Random(a.seed))
+    v = Vehicle1(World(object_deg=a.object), rng=random.Random(a.seed), reflex=reflex)
+    for t in Clock().times(int(a.learn * 1000)):
+        v.step(t)
+    reflex.learning, reflex.explore = False, 0.0
+    return reflex
 
 
 if __name__ == "__main__":
@@ -181,11 +195,14 @@ if __name__ == "__main__":
     p.add_argument("--pid", action="store_true", help="Version A, the ground truth")
     p.add_argument("--reflex", action="store_true", help="Version B, the reflex")
     p.add_argument("--correlation", action="store_true", help="Version C")
+    p.add_argument("--learn", type=float, metavar="SECONDS",
+                   help="Version D, taught for this long first")
     p.add_argument("--every", type=int, default=5, help="ticks between frames")
     p.add_argument("--moving", action="store_true", help="the object slides left")
     a = p.parse_args()
     path, n = animate(a.out, a.seconds, a.seed, a.object, a.every,
                       controller=ProportionalController() if a.pid else None,
-                      moving=a.moving, reflex=Reflex() if a.reflex else
+                      moving=a.moving, reflex=_taught(a) if a.learn else
+                             Reflex() if a.reflex else
                              CorrelationReflex() if a.correlation else None)
     print(f"{n} frames -> {path}")

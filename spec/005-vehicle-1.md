@@ -148,5 +148,67 @@ A cell that ends in the middle is the exception worth naming. Waking nothing the
 
 ![Version C running the experiment](../docs/images/version_c.gif)
 
-Nothing happens at all for the first six seconds. The object is still, the eye is still, and an eye that only reports changes has nothing to report — this is the first version that cannot see a world at rest, and the babbling of [spec 002](002-vehicles.md) stops being a curiosity and becomes the only way it could ever start. Watch the eye's row of the raster afterwards: it stays nearly empty. Over the fifteen seconds this vehicle spends a quarter of the eye events Version B does and a tenth of Version A's, and it is the one that ends up closest to the object.
+The six seconds of nothing at the start are what an object that will not move looks like from in here. Which makes the babbling of [spec 002](002-vehicles.md) the only way this vehicle could ever start on its own.
 
+Watch the eye's row of the raster afterwards: it stays nearly empty. Over the fifteen seconds this vehicle spends a quarter of the eye events Version B does and a tenth of Version A's, and it is still the one that ends up closest to the object.
+
+
+## Version D: the wiring is learnt
+The same body, the same eye and the same 72 correlation cells as Version C. What changes is that nobody says beforehand which effector each of those cells reaches. The vehicle has to find that out.
+
+Which needs something to learn from, and the obvious candidate is not available: there is no measure of how far the object sits from the middle. A neuromorphic eye never says where anything is. It only ever says that something moved.
+
+### The error is not there, but its sign is
+It turns out that is enough, because what a learner needs is not the error but whether the last thing it did made the error smaller.
+
+A correlation cell says the object went from cell i to cell j. Whether it got closer to the middle or further from it is then settled by the pair alone — no measurement, no arithmetic at run time, and nothing read off the world. It is a fixed property of each cell, decided once when the layer is built:
+
+| the cells where | meaning | how many |
+|-----------------|---------|----------|
+| `abs(j - middle) < abs(i - middle)` | it came closer | 32 |
+| `abs(j - middle) > abs(i - middle)` | it went further | 32 |
+| `abs(j - middle) == abs(i - middle)` | neither, it crossed over | 8 |
+
+So the reinforcement signal is not a quantity to be computed but **a partition of the sensory layer**: some of its cells mean *better* and some mean *worse*, by virtue of which cells of the eye they are wired to. The eye did not take the error signal away. It handed it over already differentiated, which is the form a learner wants it in.
+
+On top of that sits a rarer and blunter one, free of any wiring at all: the ON of the middle cell is *arrived*, and its OFF is *lost it*. Too rare to learn from on its own — a vehicle that knows nothing reaches the middle almost never — but worth having as a bonus over the graded signal that arrives at every move.
+
+### Which wire gets the credit
+The signal turns up after the act, so something has to remember what was done. When a correlation cell wakes an effector, the connection between those two is left **eligible**, and the eligibility fades. When a reinforcing spike arrives it strengthens every connection still eligible, by however much of the eligibility is left. Nothing here is global: a connection is changed by what passed through it and by a signal that reaches it, and by nothing else.
+
+### What the connection becomes
+The table of Version C, one effector per cell, becomes a weight per pair of cell and effector. What fires is the strongest, or one drawn from among the strong so that the vehicle keeps trying things it has not settled on.
+
+This is what the layer being fully connected was for. Under a fixed wiring, 56 of the 72 cells can never fire at all, since the object never skips a cell, and a table with 56 dead entries looks like waste. Under a learnt one it is not: which pairs matter is precisely what is not known in advance, and the ones that never occur simply never update.
+
+### Babbling, and what it is now for
+Two things stand in the way of learning, and they have the same cure.
+
+The vehicle cannot tell its own movement from the world's. An object that moves while the vehicle is learning credits it for transitions it did not cause. So it is taught against **an object that stays still**, where every change on the retina is its own doing and the credit is clean.
+
+But a still object seen by an eye that reports only change produces nothing at all, as Version C shows for six seconds together. The only way to make a still world visible is to move, which is what the babbling of [spec 002](002-vehicles.md) is.
+
+Which puts babbling at odds with the rule that an effector, once wired, never babbles again — because a vehicle that is still learning has to keep exploring. The way out is that a weight is not a wire: **uncontrolled** stops being a state a cell is in and becomes what a cell does while nothing is telling it convincingly what to do. Babbling then fades of its own accord as the weights grow, and the rule in spec 002 turns from something imposed into something observed at the end of learning.
+
+### What it learns
+
+![Version D after four minutes of being taught](../docs/images/version_d.gif)
+
+Taught for four minutes against an object that never moves, and then measured on the experiment with nothing left to chance — no exploring, no learning, only what it has:
+
+| | catches it | holds it | eye | effector | off by |
+|---|---|---|---|---|---|
+| A, the ground truth | 620 ms | 12.36 s | 409 | 0 | 4.0° |
+| B, wired on the level readout | 1280 ms | 13.26 s | 93 | 63 | 3.8° |
+| C, wired on the neuromorphic eye | 6380 ms | 8.48 s | 37 | 86 | 3.2° |
+| **D, having found its own wiring** | **720 ms** | **14.02 s** | 47 | 132 | **2.1°** |
+
+It beats all three, the analog ground truth included, holding the object in the middle for fourteen of the fifteen seconds and ending two degrees off it, on a ninth of the eye events Version A needs. It has the same eye as Version C and the same inability to see a world at rest, but it babbles from the start rather than waiting for the world to move, so it catches the object in 720 ms where C takes six seconds.
+
+Which is what settles the question this spec has carried since Version A. *Learnt* now means something that can be checked: it does better than the same vehicle with the wiring put in by hand.
+
+### Open questions
+
+- How much does a reinforcing spike change a weight, and how fast does eligibility fade? Between them they set whether the vehicle learns at all and whether what it learns survives one bad run.
+- How strong must a weight be before a cell stops babbling, and does it ever go back?
+- Standing still in the middle earns nothing. The vehicle is paid for *improving*, and improving means having got worse first, so a vehicle that wanders off and comes back is paid for the coming back. It does not do that here, but nothing in the reward says it must not.
