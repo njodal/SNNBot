@@ -67,7 +67,8 @@ def _zigzag(d, p0, p1, n=11, base=REST_LENGTH):
     d.line(pts, fill="black", width=3, joint="curve")
 
 
-def frame(t, head_deg, busy, object_deg, levels, raster, title="motor babbling"):
+def frame(t, head_deg, busy, object_deg, levels, raster, title="motor babbling",
+          note=None):
     im = Image.new("RGB", (W, H), "white")
     d = ImageDraw.Draw(im)
     # A head turned to the left is a head whose left end has been pulled down, so
@@ -121,6 +122,8 @@ def frame(t, head_deg, busy, object_deg, levels, raster, title="motor babbling")
     d.text((20, 50), f"head {head_deg:+5.1f}°", fill="black", font=F, anchor="lm")
     d.text((20, 76), f"cell {busy if busy else '—'}", fill="black", font=F, anchor="lm")
     d.text((W - 20, 24), title, fill="black", font=F, anchor="rm")
+    if note:
+        d.text((W - 20, 76), note, fill="black", font=FS, anchor="rm")
     d.text((W - 20, 50), f"contraction  L {levels[LEFT]:5.1f}   R {levels[RIGHT]:5.1f}",
            fill="black", font=FS, anchor="rm")
 
@@ -182,6 +185,40 @@ def _taught(a):
         v.step(t)
     reflex.learning, reflex.explore = False, 0.0
     return reflex
+
+
+def learning(path="learning.gif", train_s=240.0, windows=((0, 8), (116, 124), (232, 240)),
+             seed=1, object_deg=18.0, every=10):
+    """Watch it being taught: the same eight seconds early, halfway and at the end.
+
+    The object never moves, so the only thing that can make it visible is the
+    vehicle moving itself. Early on that is all there is — flailing, and the
+    object wherever it happens to fall. By the end the flailing has been
+    replaced by whatever the weights have come to say.
+    """
+    from ..layers.sensory import LearningReflex
+
+    reflex = LearningReflex(random.Random(seed))
+    world = World(object_deg=object_deg)
+    vehicle = Vehicle1(world, rng=random.Random(seed + 1), reflex=reflex)
+    raster, frames = deque(maxlen=4000), []
+    for t in Clock().times(int(train_s * 1000)):
+        fired = vehicle.step(t)
+        for e in fired.get("retina", ()):
+            raster.append((t, 0, e.address[0], e.p is ON))
+        for row, side in ((1, LEFT), (2, RIGHT)):
+            for _ in fired.get(f"effector.{side}", ()):
+                raster.append((t, row, 0, True))
+        if t % (every * TICK_MS) or not any(a * 1000 <= t < b * 1000 for a, b in windows):
+            continue
+        knows = sum(any(w.values()) for w in reflex.weights.values())
+        levels = {s: vehicle.actuators[s].level for s in (LEFT, RIGHT)}
+        frames.append(frame(t, vehicle.head_deg, vehicle.retina.busy_cell(),
+                            object_deg, levels, list(raster), "Version D: being taught",
+                            f"taught {t / 1000:5.1f} s   ·   {knows} of 72 cells know something"))
+    frames[0].save(path, save_all=True, append_images=frames[1:],
+                   duration=every * TICK_MS, loop=0, optimize=True)
+    return path, len(frames)
 
 
 if __name__ == "__main__":

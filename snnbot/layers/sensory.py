@@ -124,20 +124,26 @@ class CorrelationReflex:
                 return max(came_from)[1], j     # the most recent one it left
         return None
 
+    def drive(self, t, layers, target):
+        """Wake that one and let no other run. Started once, not held on.
+
+        An effector runs its own course and stops by itself, as spec 003 has it.
+        Restarting it for as long as nothing else has happened is how a vehicle
+        ends up leaning on its own stop for ever, having last been told to turn
+        and never told anything since.
+        """
+        for side, layer in layers.items():
+            for index, effector in enumerate(layer.effectors):
+                if (side, index) == target:
+                    effector.start(t)
+                elif effector.emitting:
+                    effector.stop(t)
+
     def update(self, t, active_cell, eye, layers):
         move = self.moved(t, eye)
         if move is not None:
             self.awake = self.wiring[move]      # the wire out of that very cell
-        target = self.awake
-
-        for side, layer in layers.items():
-            for index, effector in enumerate(layer.effectors):
-                if (side, index) == target:
-                    if not effector.emitting:
-                        effector.start(t)
-                elif effector.emitting:
-                    effector.stop(t)
-
+            self.drive(t, layers, self.awake)
         return [Event(t, move, ON)] if move is not None else []
 
 
@@ -214,6 +220,7 @@ class LearningReflex(CorrelationReflex):
             self.awake = self.choose(move)
             self._eligible[(move, self.awake)] = t
             self._last_pair = move
+            self.drive(t, layers, self.awake)
         elif not any(e.emitting for layer in layers.values() for e in layer.effectors):
             # nothing to go on and nothing running: try something, which is what
             # an effector with nothing convincing behind it does anyway
@@ -221,13 +228,6 @@ class LearningReflex(CorrelationReflex):
                 self.awake = self.rng.choice(self.actions)
                 if self._last_pair is not None:
                     self._eligible[(self._last_pair, self.awake)] = t
-
-        for side, layer in layers.items():
-            for index, effector in enumerate(layer.effectors):
-                if (side, index) == self.awake:
-                    if not effector.emitting:
-                        effector.start(t)
-                elif effector.emitting:
-                    effector.stop(t)
+                self.drive(t, layers, self.awake)
 
         return [Event(t, move, ON)] if move is not None else []
