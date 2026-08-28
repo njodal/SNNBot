@@ -156,7 +156,7 @@ Watch the eye's row of the raster afterwards: it stays nearly empty. Over the fi
 ## Version D: the wiring is learnt
 The same body, the same eye and the same 72 correlation cells as Version C. What changes is that nobody says beforehand which effector each of those cells reaches. The vehicle has to find that out.
 
-Which needs something to learn from, and the obvious candidate is not available: there is no measure of how far the object sits from the middle. A neuromorphic eye never says where anything is. It only ever says that something moved.
+Which needs something to learn from, and the obvious candidate is not available: there is no measure of how far the object sits from the middle. 
 
 ### The error is not there, but its sign is
 It turns out that is enough, because what a learner needs is not the error but whether the last thing it did made the error smaller.
