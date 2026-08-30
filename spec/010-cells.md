@@ -19,11 +19,13 @@ Nothing emits faster than one spike per 10 ms, the time a spike takes in [spec 0
 
 ## Type of Cells
 ### Effector Cell
-It is a cell commonly used to control actuators (please insert link to spec 003). If it has no mature inputs connections the cell emits a set of spikes at a fixed frequency and time. 
+It is a cell commonly used to control actuators, as [spec 003](003-neuromorphic-actuators.md) describes. If it has no mature inputs connections the cell emits a set of spikes at a fixed frequency and time. 
 
 If it has excitatory inputs, receiving one of them starts the emiting process, in case of inhibitory inputs it cancel the process. 
 
-(please insert image of a effector cell with two inputs (start and stop) and one output)
+![An effector cell, started and stopped](../docs/images/effector_cell.png)
+
+Its output is what tells it apart from the cells above: not one spike but a train, at a frequency and for a duration that belong to the cell and not to whatever started it.
 
 ## The cells there are so far
 Three kinds, with less in common than one might expect.
