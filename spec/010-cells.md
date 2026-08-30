@@ -29,14 +29,19 @@ It main function is to emit a train of spikes at a fixed frequency and time. If 
 
 
 ### Correlation Cell
-This cell has two input connections and fires if the second connection arrives *after* the second one.
+This cell has two input connections and fires if the second connection arrives *after* the first one.
 
-please insert image
+![A correlation cell, one order and the other](../docs/images/correlation_cell.png)
+
+Both inputs arrive in either case. What settles it is the order, which is what makes a pair of these — one wired each way round — able to tell a movement from the same movement backwards.
 
 ### Coincidence Cell
 This cell have many inputs connections and fires if the mayority of the inputs arrives at the same time.
 
-please insert image.
+![A coincidence cell, together and spread out](../docs/images/coincidence_cell.png)
+
+The same spikes arrive in both cases and the same number of them. Only their falling together makes any difference.
+
 ## The cells there are so far
 Three kinds, with less in common than one might expect.
 
