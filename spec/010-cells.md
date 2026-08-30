@@ -11,11 +11,19 @@ A cell can have any number of inputs and exactly one output, and each input is c
 
 ![A cell, its two kinds of input and its one output](../docs/images/cell.png)
 
-An excitatory connection is drawn as a filled circle against the cell and an inhibitory one as a bar, the same notation the effectors of [spec 003](003-neuromorphic-actuators.md) are drawn with.
+An excitatory connection is drawn as a filled circle against the cell and an inhibitory one as a bar.
 
-What travels on any of those lines is a spike, and only a spike — the `(t, address, p)` of [spec 001](001-neuromorphic-sensors.md), a signal that has happened rather than a value that can be read. It is what leaves a cell and it is the only thing that arrives at one: a cell knows the spikes at its inputs and nothing else, not another cell's state, not the body, not the world. That is the rule the levels obey in spec 002, applied one floor down, and it is what makes a layer something that can be rewired without being rewritten.
+What travels on any of those lines is a spike, and only a spike, a signal that has happened rather than a value that can be read. 
 
 Nothing emits faster than one spike per 10 ms, the time a spike takes in [spec 004](004-simulator.md). A cell is bound by that like everything else, so 100 Hz is the most any of them can do.
+
+## Type of Cells
+### Effector Cell
+It is a cell commonly used to control actuators (please insert link to spec 003). If it has no mature inputs connections the cell emits a set of spikes at a fixed frequency and time. 
+
+If it has excitatory inputs, receiving one of them starts the emiting process, in case of inhibitory inputs it cancel the process. 
+
+(please insert image of a effector cell with two inputs (start and stop) and one output)
 
 ## The cells there are so far
 Three kinds, with less in common than one might expect.
