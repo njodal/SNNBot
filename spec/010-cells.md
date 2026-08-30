@@ -7,14 +7,13 @@
 The three layers of [spec 002](002-vehicles.md) are made of cells. This is what a cell is, what any of them have in common, and what the ones built so far actually do.
 
 ## What a cell is
-A cell can have multiple inputs and only one output. Each input can be connected with an excitatory or inhibitory connection.
+A cell can have any number of inputs and exactly one output, and each input is connected either excitatorily or inhibitorily.
 
-please insert here an image of a cell with two input (one excitatory and one inhibitory) and the output
+![A cell, its two kinds of input and its one output](../docs/images/cell.png)
 
-In this proyect only 'spike cells' are used, meaning a cell can receive or sent 'spikes', just a signal 
-A cell has inputs, a rule, and one output. The output is a spike — the `(t, address, p)` of [spec 001](001-neuromorphic-sensors.md) — and it is the only thing that leaves.
+An excitatory connection is drawn as a filled circle against the cell and an inhibitory one as a bar, the same notation the effectors of [spec 003](003-neuromorphic-actuators.md) are drawn with.
 
-It is also the only thing that arrives. A cell reads the spikes at its inputs and nothing else: not another cell's state, not the body, not the world. That is the same rule the levels obey in spec 002, applied one floor down, and it is what makes a layer something that can be rewired without rewriting.
+What travels on any of those lines is a spike, and only a spike — the `(t, address, p)` of [spec 001](001-neuromorphic-sensors.md), a signal that has happened rather than a value that can be read. It is what leaves a cell and it is the only thing that arrives at one: a cell knows the spikes at its inputs and nothing else, not another cell's state, not the body, not the world. That is the rule the levels obey in spec 002, applied one floor down, and it is what makes a layer something that can be rewired without being rewritten.
 
 Nothing emits faster than one spike per 10 ms, the time a spike takes in [spec 004](004-simulator.md). A cell is bound by that like everything else, so 100 Hz is the most any of them can do.
 
