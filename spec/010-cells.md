@@ -7,6 +7,11 @@
 The three layers of [spec 002](002-vehicles.md) are made of cells. This is what a cell is, what any of them have in common, and what the ones built so far actually do.
 
 ## What a cell is
+A cell can have multiple inputs and only one output. Each input can be connected with an excitatory or inhibitory connection.
+
+please insert here an image of a cell with two input (one excitatory and one inhibitory) and the output
+
+In this proyect only 'spike cells' are used, meaning a cell can receive or sent 'spikes', just a signal 
 A cell has inputs, a rule, and one output. The output is a spike — the `(t, address, p)` of [spec 001](001-neuromorphic-sensors.md) — and it is the only thing that leaves.
 
 It is also the only thing that arrives. A cell reads the spikes at its inputs and nothing else: not another cell's state, not the body, not the world. That is the same rule the levels obey in spec 002, applied one floor down, and it is what makes a layer something that can be rewired without rewriting.
