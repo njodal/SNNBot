@@ -28,6 +28,15 @@ It main function is to emit a train of spikes at a fixed frequency and time. If 
 ![An effector cell, started and stopped](../docs/images/effector_cell.png)
 
 
+### Correlation Cell
+This cell has two input connections and fires if the second connection arrives *after* the second one.
+
+please insert image
+
+### Coincidence Cell
+This cell have many inputs connections and fires if the mayority of the inputs arrives at the same time.
+
+please insert image.
 ## The cells there are so far
 Three kinds, with less in common than one might expect.
 
