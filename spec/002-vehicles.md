@@ -6,8 +6,6 @@
 
 Following the Braitenberg tradition, we will define a series of Vehicles, from the simplest one to more sophisticated.
 
-Every vehicle is built out of the sensor types defined in [spec 001](001-neuromorphic-sensors.md).
-
 ## General Architecture
 All vehicles have a similar setup for sensors, brain, and actuators.
 
@@ -16,6 +14,8 @@ All vehicles have a similar setup for sensors, brain, and actuators.
 At the bottom is the *body*: the sensors that face the environment, the propioceptive sensors that face the body itself, and the actuators. On top of it sits the *cortex*, and between them two layers that do the translating — the sensory layer, which takes the spikes the sensors fire, and the effector layer, whose effectors drive the actuators.
 
 Nothing crosses those levels other than spikes, so what changes from one vehicle to the next is what hangs off the bottom level and how the cortex is wired, not the shape of the stack.
+
+The Sensory Layer, Cortex and Effector Layer are composed of cell.
 
 ### Sensory Layer
 It takes spikes from sensors and does some processing to generate perception to be sent to the Cortex. Ex: find some correlations in the spikes between environment sensors and propioceptive ones (in other words, find what effect the movements detected by the propioceptive sensors have on the environment ones).
