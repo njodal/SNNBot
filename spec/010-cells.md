@@ -17,15 +17,16 @@ What travels on any of those lines is a spike, and only a spike, a signal that h
 
 Nothing emits faster than one spike per 10 ms, the time a spike takes in [spec 004](004-simulator.md). A cell is bound by that like everything else, so 100 Hz is the most any of them can do.
 
+The input connections have a 'weight' value, to indicate if the connection is mature or not. If the connection is not mature the spike will not go to the cell. Weight values is in the (0, 1) interval with values above 0.7 are considered mature.
+
 ## Type of Cells
 ### Effector Cell
-It is a cell commonly used to control actuators, as [spec 003](003-neuromorphic-actuators.md) describes. If it has no mature inputs connections the cell emits a set of spikes at a fixed frequency and time. 
+It is a cell commonly used to control actuators, as [spec 003](003-neuromorphic-actuators.md) describes.
 
-If it has excitatory inputs, receiving one of them starts the emiting process, in case of inhibitory inputs it cancel the process. 
+It main function is to emit a train of spikes at a fixed frequency and time. If the cell has mature input connections it will start the emit process when an excitatory spike arrives, and finish when an inhibitory one arrives or the process run out of its time. If the cell has not mature connections it can start the emit process spontanouely at random. 
 
 ![An effector cell, started and stopped](../docs/images/effector_cell.png)
 
-Its output is what tells it apart from the cells above: not one spike but a train, at a frequency and for a duration that belong to the cell and not to whatever started it.
 
 ## The cells there are so far
 Three kinds, with less in common than one might expect.
