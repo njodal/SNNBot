@@ -35,6 +35,8 @@ This cell has two input connections and fires if the second connection arrives *
 
 Both inputs arrive in either case. What settles it is the order, which is what makes a pair of these — one wired each way round — able to tell a movement from the same movement backwards.
 
+The time window has a minimum and maximum value, so to discard spikes arriving at almost the same time or too far away. Ex: (10, 50) (in ms).
+
 ### Coincidence Cell
 This cell have many inputs connections and fires if the mayority of the inputs arrives at the same time.
 
