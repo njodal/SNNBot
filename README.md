@@ -34,4 +34,6 @@ Design specifications live in [`spec/`](spec/).
 - [005 — Vehicle 1](spec/005-vehicle-1.md): the first vehicle — one eye, two
   actuators that turn it, and nothing else — with the four ways it has been
   driven, from a plain controller to a wiring it finds for itself.
+- [010 — Cells](spec/010-cells.md): what the layers are made of — what a cell
+  reads, what it emits, and the three kinds built so far.
 

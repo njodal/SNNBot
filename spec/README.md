@@ -18,3 +18,4 @@ Design specifications for SNNBot.
 | 003 | [Neuromorphic actuators](003-neuromorphic-actuators.md)      | draft  |
 | 004 | [Simulator](004-simulator.md)                                | draft  |
 | 005 | [Vehicle 1](005-vehicle-1.md)                                | draft  |
+| 010 | [Cells](010-cells.md)                                        | draft  |

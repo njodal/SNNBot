@@ -1,0 +1,42 @@
+# 010 — Cells
+
+- **Status:** draft
+- **Date:** 2026-08-28
+- **Supersedes / Superseded by:** —
+
+The three layers of [spec 002](002-vehicles.md) are made of cells. This is what a cell is, what any of them have in common, and what the ones built so far actually do.
+
+## What a cell is
+A cell has inputs, a rule, and one output. The output is a spike — the `(t, address, p)` of [spec 001](001-neuromorphic-sensors.md) — and it is the only thing that leaves.
+
+It is also the only thing that arrives. A cell reads the spikes at its inputs and nothing else: not another cell's state, not the body, not the world. That is the same rule the levels obey in spec 002, applied one floor down, and it is what makes a layer something that can be rewired without rewriting.
+
+Nothing emits faster than one spike per 10 ms, the time a spike takes in [spec 004](004-simulator.md). A cell is bound by that like everything else, so 100 Hz is the most any of them can do.
+
+## The cells there are so far
+Three kinds, with less in common than one might expect.
+
+| | inputs | what it does |
+|---|--------|--------------|
+| **Effector** ([spec 003](003-neuromorphic-actuators.md)) | start, stop | emits at its own frequency for its own duration, and drives an actuator. Unwired, it fires by itself — the babbling of spec 002 |
+| **Relay** ([Version B](005-vehicle-1.md)) | one | fires when its input fires. The plainest cell there could be |
+| **Correlation** ([Version C](005-vehicle-1.md)) | predecessor, successor | fires only if the predecessor arrived first, and within a window. The pair `(i→j)` and the pair `(j→i)` are different cells, which is what makes it tell one direction from the other |
+
+## What they have not got
+No membrane, no threshold, nothing accumulating. Not one of the cells built so far integrates anything: each is a small rule over the spikes at its inputs, and it either fires or does not.
+
+That is a deliberate simplification and it may well not last. It holds while a cell has one or two inputs and reacts to a pattern between them. The moment a cell has to weigh many inputs against one another — which is what a cortex is for — something like a membrane filling up to a threshold is the usual answer, and none of this has one.
+
+## Connections
+A connection carries a spike from one cell's output to another's input.
+
+Through Versions A to C a connection is simply there or not there. In [Version D](005-vehicle-1.md) it is a **weight**, and what a cell does is settled by which of its connections is the strongest. That change is what lets *not connected* soften into *connected weakly*, so that babbling fades as a vehicle learns rather than stopping the moment somebody wires it.
+
+Inhibition sits awkwardly. The effector layer is supposed to inhibit its own cells laterally, so that only the last one woken stays active, but whether that is wiring between the cells or a property of the layer above them is not decided. The simulator does it above them, which is a choice made for convenience and not from the design.
+
+## Open questions
+
+- Is there one cell here, or three unrelated rules that happen to speak in spikes? A common model would make a new kind cheap to add, and would say what a cell of this project can and cannot compute.
+- Does a cell need a membrane and a threshold? Nothing so far has wanted one, but nothing so far weighs more than two inputs.
+- Do cells have a refractory period, as the sensors of spec 001 do? Nothing stops one firing on consecutive cycles today.
+- Lateral inhibition: wiring between cells, or something the layer does to them?
