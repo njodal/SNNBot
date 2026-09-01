@@ -90,6 +90,19 @@ And while the object is creeping left the eye **chatters at the cell boundary** 
 
 Which is worth knowing before the number that judges a run is settled: this vehicle is at its noisiest exactly where it is doing best. Most of that noise no longer reaches the eye's output, the 20 ms the eye waits before reporting a cell as busy being longer than most of the trembling — but the head still trembles, and the effectors still pay for it. A faster object is easier on it — it simply settles a cell behind and stays there. Curing the chatter would mean hysteresis, or a dead zone around zero error, and neither is decided yet.
 
+### Speed, which it does not want
+The speed cells of [spec 010](010-cells.md) were fed to it, every one of their 280 joining the vote alongside the cell that says which way the object went. It does worse with them. Over twelve seeds, taught four minutes each:
+
+| what the layer offers it | holds the object in the middle |
+|--------------------------|--------------------------------|
+| direction only | 9.67 s on average, worst run 3.72 |
+| direction and speed, all of them voting | 7.77 s, worst run 0.00 |
+| direction and speed, the most certain cell deciding | 8.62 s, worst run 2.64 |
+
+Two reasons it was never likely to help. Centring a thing is a question about **where** it is, and the cell that reports a direction already carries that; a speed says nothing further about which way to turn. And the 280 extra cells have to be learnt from the same reward as the rest, so they mostly add states that dilute what the few useful cells have worked out — visible in the middle row, where letting them all vote is worse than letting the most certain one decide.
+
+There is a third reason, and it is the interesting one. The vehicle is taught against **an object that never moves**, so that every change on its retina is its own doing. Which means the only speeds it ever sees are its own. A cell that reports how fast something crossed the eye is, during all of its schooling, reporting how fast the head swung — never how fast the world went. To learn what an object's speed means it would have to be taught against a moving one, and that is the very thing given up to keep the credit clean.
+
 ### Open questions
 
 - What counts as success? Time taken to bring the object to cell 5, the fraction of a run spent there, something else. Until that is settled Version A is a vehicle that works, but not yet a measurement anything can be compared against.
@@ -212,6 +225,19 @@ That is one run of one seed, though, and this vehicle varies a great deal from s
 | Version D, taught four minutes, over eight seeds | 8.70 s on average, from 6.07 to 11.38 |
 
 So it learns — an untaught vehicle manages almost nothing, and a taught one lands in the same range as the wiring put in by hand. But it does not yet beat it. The spread across seeds is wider than the difference between the two, which means a single run of Version D says more about its seed than about learning, and a good one should not be reported as a result.
+
+### Speed, which it does not want
+The speed cells of [spec 010](010-cells.md) were fed to it, every one of their 280 joining the vote alongside the cell that says which way the object went. It does worse with them. Over twelve seeds, taught four minutes each:
+
+| what the layer offers it | holds the object in the middle |
+|--------------------------|--------------------------------|
+| direction only | 9.67 s on average, worst run 3.72 |
+| direction and speed, all of them voting | 7.77 s, worst run 0.00 |
+| direction and speed, the most certain cell deciding | 8.62 s, worst run 2.64 |
+
+Two reasons it was never likely to help. Centring a thing is a question about **where** it is, and the cell that reports a direction already carries that; a speed says nothing further about which way to turn. And the 280 extra cells have to be learnt from the same reward as the rest, so they mostly add states that dilute what the few useful cells have worked out — visible in the middle row, where letting them all vote is worse than letting the most certain one decide.
+
+There is a third reason, and it is the interesting one. The vehicle is taught against **an object that never moves**, so that every change on its retina is its own doing. Which means the only speeds it ever sees are its own. A cell that reports how fast something crossed the eye is, during all of its schooling, reporting how fast the head swung — never how fast the world went. To learn what an object's speed means it would have to be taught against a moving one, and that is the very thing given up to keep the credit clean.
 
 ### Open questions
 

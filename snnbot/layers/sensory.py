@@ -180,7 +180,7 @@ class LearningReflex(CorrelationReflex):
 
     def __init__(self, rng, cells=EYE_CELLS, effectors=len(EFFECTORS),
                  lr=LEARNING_RATE, eligibility_ms=ELIGIBILITY_MS, explore=EXPLORE,
-                 babble_every_ms=BABBLE_EVERY_MS,
+                 babble_every_ms=BABBLE_EVERY_MS, speed=False,
                  window=(CORRELATION_MIN_MS, CORRELATION_MAX_MS)):
         super().__init__(wiring=correlation_wiring(cells), window=window)
         self.rng, self.lr, self.explore = rng, lr, explore
@@ -188,43 +188,58 @@ class LearningReflex(CorrelationReflex):
         self._eligibility_ms, self._babble_every = eligibility_ms, babble_every_ms
         self.actions = [(side, index) for side in (LEFT, RIGHT)
                         for index in range(effectors)]
-        self.weights = {pair: {act: 0.0 for act in self.actions} for pair in self.wiring}
-        self._eligible = {}         # (pair, action) -> when it was used
+        # Off by default: over twelve seeds the vehicle does worse with them
+        # than without, which is written up in spec 005. They read a speed
+        # correctly; there is nothing in this task that wants one.
+        self.speed = SpeedLayer(cells) if speed else None
+        keys = list(self.wiring) + [(c.pred, c.succ, c.tuned_to)
+                                    for c in (self.speed.cells if self.speed else ())]
+        self.weights = {key: {act: 0.0 for act in self.actions} for key in keys}
+        self._eligible = {}         # (cell, action) -> when it was used
         self._last_pair = None
 
-    def choose(self, pair):
+    def choose(self, *cells):
         """The effector with the most weight behind it, or one to try out.
 
-        Untried is not the same as known to be bad: once a cell has learnt
-        anything at all it goes with the best it has, even when the best it has
-        is merely the least harmful.
+        Several cells can fire at once — the one that says which way the object
+        went, and any that say how fast — so they vote, each adding what it has
+        learnt to every effector it has an opinion about.
+
+        Untried is not the same as known to be bad: once anything has been learnt
+        it goes with the best there is, even when the best is merely the least
+        harmful.
         """
-        weights = self.weights[pair]
-        untried = not any(weights.values())
-        if untried or self.rng.random() < self.explore:
+        score = {a: sum(self.weights[c][a] for c in cells) for a in self.actions}
+        if not any(score.values()) or self.rng.random() < self.explore:
             return self.rng.choice(self.actions)
-        best = max(weights.values())
-        return self.rng.choice([a for a, w in weights.items() if w == best])
+        best = max(score.values())
+        return self.rng.choice([a for a, w in score.items() if w == best])
 
     def reinforce(self, t, reward):
         """Credit or blame whatever is still eligible, by what is left of it."""
         if not reward or not self.learning:
             return
-        for (pair, action), used in list(self._eligible.items()):
+        for (cell, action), used in list(self._eligible.items()):
             left = 1 - (t - used) / self._eligibility_ms
             if left <= 0:
-                del self._eligible[(pair, action)]
+                del self._eligible[(cell, action)]
             else:
-                w = self.weights[pair][action] + self.lr * reward * left
-                self.weights[pair][action] = max(-WEIGHT_MAX, min(WEIGHT_MAX, w))
+                w = self.weights[cell][action] + self.lr * reward * left
+                self.weights[cell][action] = max(-WEIGHT_MAX, min(WEIGHT_MAX, w))
 
     def update(self, t, active_cell, eye, layers):
         move = self.moved(t, eye)
-        if move is not None:
-            self.reinforce(t, outcome(move))
-            self.awake = self.choose(move)
-            self._eligible[(move, self.awake)] = t
-            self._last_pair = move
+        firing = [move] if move is not None else []
+        if self.speed is not None:
+            firing += [(c.pred, c.succ, c.tuned_to) for c in self.speed.update(t, eye)]
+
+        if firing:
+            if move is not None:
+                self.reinforce(t, outcome(move))
+            self.awake = self.choose(*firing)
+            for cell in firing:
+                self._eligible[(cell, self.awake)] = t
+            self._last_pair = move if move is not None else self._last_pair
             self.drive(t, layers, self.awake)
         elif not any(e.emitting for layer in layers.values() for e in layer.effectors):
             # nothing to go on and nothing running: try something, which is what

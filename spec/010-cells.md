@@ -61,6 +61,8 @@ The interval that carries speed is the one from **one crossing to the next**, so
 
 The bands are cut at the geometric mean between one transit time and the next, so they tile without overlapping and each holds exactly one of the speeds the body can move at. Run against the eye, what fires says how fast the head went: at every one of the five, the median of the speeds the firing cells stand for is the speed the head was actually going, and the spread is one band either side.
 
+Reading a speed and having a use for one are different things: fed to the vehicle that learns its own wiring, these cells make it worse rather than better, for reasons written up in [spec 005](005-vehicle-1.md).
+
 Which puts the layer's cells that never fire to work. Of the 72 pairs in [Version C](005-vehicle-1.md) only the 16 adjacent ones can ever occur, and the other 56 looked like a fully connected layer being wasteful. They are not: they are where speed is, and they were idle only because every cell was given the same window, and a window too short for any transit — the 10 to 50 ms that orders two simultaneous events is nowhere near the 112 ms to 2 s a movement takes.
 
 ### Coincidence Cell
