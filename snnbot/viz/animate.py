@@ -16,7 +16,7 @@ from ..control import ProportionalController
 from ..layers.sensory import CorrelationReflex, LearningReflex, Reflex
 from ..events import ON
 from ..params import CELL_ANGLE_DEG, EYE_CELLS, TICK_MS
-from ..world import World, experiment_path
+from ..world import World, experiment_path, wandering
 
 W, H = 760, 640
 CELL = 34
@@ -176,12 +176,18 @@ def animate(path="babbling.gif", seconds=8.0, seed=2, object_deg=18.0, every=80,
 
 
 def _taught(a):
-    """Version D, put through its schooling before anyone watches."""
+    """Version D, put through its schooling before anyone watches.
+
+    Against an object that wanders, and with the cells that read a speed: the
+    two go together, either alone leaving it worse off than neither.
+    """
     from ..body.vehicle1 import Vehicle1
     from ..clock import Clock
-    reflex = LearningReflex(random.Random(a.seed))
-    v = Vehicle1(World(object_deg=a.object), rng=random.Random(a.seed), reflex=reflex)
+    reflex = LearningReflex(random.Random(a.seed), speed=True)
+    world = World(object_deg=a.object, path=wandering(random.Random(a.seed + 7)))
+    v = Vehicle1(world, rng=random.Random(a.seed), reflex=reflex)
     for t in Clock().times(int(a.learn * 1000)):
+        world.update(t)
         v.step(t)
     reflex.learning, reflex.explore = False, 0.0
     return reflex
