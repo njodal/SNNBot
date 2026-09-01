@@ -99,6 +99,44 @@ WEIGHT_MAX = 1.0                  # PROVISIONAL: the strongest a connection gets
                                   # Without a ceiling an early run of luck piles
                                   # up more weight than later evidence can undo.
 
+# --- the geometry of Vehicle 2: spec 006 ---
+# Two joints now, and they are not alike. The numbers are the human ones,
+# rounded: an eye that is quick and short of travel, a neck that is slow and
+# long. Everything else about the body is Vehicle 1's, twice over.
+HEAD_RANGE_DEG = 45.0             # SPEC 006: the joint the eye sits on. A human
+                                  # eye turns +-45 to 50 in the orbit
+HEAD_COMFORT_DEG = 20.0           # SPEC 006: past this a human recruits the head
+NECK_RANGE_DEG = 80.0             # SPEC 006: human cervical rotation, +-70 to 80
+NECK_COMFORT_DEG = 45.0           # SPEC 006
+RECRUIT_NECK_DEG = HEAD_COMFORT_DEG   # PROVISIONAL: the gaze shift past which a
+                                  # human stops using the eye alone. What plays
+                                  # this part here is the open question of spec 006
+
+# Each joint keeps the contraction range of spec 003, so its span of travel is
+# what sets its degrees per unit of imbalance — and with it the size of a step.
+HEAD_DEG_PER_UNIT = HEAD_RANGE_DEG / CONTRACTION_MAX      # 0.45
+NECK_DEG_PER_UNIT = NECK_RANGE_DEG / CONTRACTION_MAX      # 0.8
+HEAD_DEG_PER_SPIKE = 2 * STEP * HEAD_DEG_PER_UNIT         # 0.9, one cell per babble
+NECK_DEG_PER_SPIKE = 2 * STEP * NECK_DEG_PER_UNIT         # 1.6, near two
+
+# The ladders, (frequency in Hz, duration in ms) as in spec 003. The head's
+# fastest is a saccade: 500 Hz is exactly MAX_RATE_HZ, the most the refractory
+# period allows, and it runs for 40 ms and no longer — 18 spikes, 16 degrees,
+# over before anything could stop it. Real burst neurons fire at 600 to 1000 Hz
+# during a saccade, so the ceiling of spec 004 is the right place for it to be.
+HEAD_EFFECTORS = ((500, 40), (250, 80), (100, 200), (20, 500))    # PROVISIONAL
+NECK_EFFECTORS = ((100, 400), (50, 600), (20, 1000), (5, 1000))   # PROVISIONAL
+HEAD_MAX_RATE_DEG_S = HEAD_EFFECTORS[0][0] * HEAD_DEG_PER_SPIKE   # 450 deg/s, a
+                                  # human saccade peaks at 300 to 500
+NECK_MAX_RATE_DEG_S = NECK_EFFECTORS[0][0] * NECK_DEG_PER_SPIKE   # 160 deg/s, a
+                                  # human head turn at 100 to 200
+GAZE_RANGE_DEG = HEAD_RANGE_DEG + NECK_RANGE_DEG          # 125: the two add up
+
+# One propioceptive level covers 2 * range / PROP_SENSORS: 9 degrees for the
+# head, exactly one cell of the eye, and 16 for the neck, near two of them. The
+# neck is the coarser joint throughout — step, level and babble alike — which is
+# the price of giving it twice the travel out of the same contraction range.
+
 # --- the experiment: spec 005 ---
 OBJECT_START_DEG = 18.0           # where the object waits, left of straight ahead
 OBJECT_STILL_MS = 3000            # how long it stays there before moving

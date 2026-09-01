@@ -36,3 +36,4 @@ The firing of an uncontrolled cell is random: nothing schedules it, the cell sim
 ## The vehicles
 
 - [005 — Vehicle 1](005-vehicle-1.md): one eye and two actuators that turn it, and nothing else.
+- [006 — Vehicle 2](006-vehicle-2.md): the same eye on a neck — two joints of different reach and different speed pointing it, and one retina that cannot tell them apart.
