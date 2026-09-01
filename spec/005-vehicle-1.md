@@ -163,9 +163,9 @@ Each of this cells is connected to an effector cell.
 ### The order the cells read
 The two events of a move only come in an order if something makes them. With the cells of the eye covering the world edge to edge and the object a point, it leaves one cell in the very instant it reaches the next, and both events carry the same time — a correlation cell waiting for its predecessor to arrive first would wait forever.
 
-So a cell reports **becoming busy 20 ms after it happens**, and becoming empty at once. A move is then always an OFF and, twenty milliseconds later, an ON, which is what this spec and [spec 001](001-neuromorphic-sensors.md) have described from the start.
+The eye is not the place to fix that. It reports both events when they happen, and a **delay cell** of [spec 010](010-cells.md) on the arrival is what holds one back — 20 ms, which lands in the middle of the window those cells accept rather than on an edge of it.
 
-Twenty because the correlation cells of [spec 010](010-cells.md) only accept a pair between 10 and 50 ms apart, and a delay that lands on either edge of that is a delay that works by luck. It also filters: an occupancy shorter than the lag is never reported at all, which silently swallows the chatter of a head trembling at a cell boundary while leaving every real crossing alone, none of which takes less than a tenth of a second.
+What the eye does keep is a **settling time**: a cell says a thing has arrived once it has been there five milliseconds, and says nothing at all about one that came and went inside that. Which is not the same as reporting late — it is a sensor that needs a moment to be sure — and it is what keeps the trembling of a head at a cell boundary out of the record while letting through every real crossing, none of which takes less than a tenth of a second.
 
 That is not the whole of it either. Cells that share their edges leave an object standing on one of them inside both at once, so the cell being reached reports before the cell being left and the lag does no more than cancel that head start out. The cells are half open — each takes its own edge and leaves the next one to its neighbour — so an object is never in two of them.
 

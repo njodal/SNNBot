@@ -2,7 +2,7 @@
 
 from snnbot.body.retina import Retina
 from snnbot.events import OFF, ON
-from snnbot.params import ON_LAG_MS, T_REF_MS, TICK_MS
+from snnbot.params import SETTLE_MS, T_REF_MS, TICK_MS
 
 AT_REST, TURNED_LEFT = 0.0, 18.0
 OBJECT = 18.0                      # degrees left of ahead, as drawn in spec 005
@@ -24,14 +24,16 @@ def test_the_object_at_rest_is_seen_by_cell_3():
 def test_turning_the_head_slides_the_object_to_cell_5():
     """Spec 004: the pair of pictures of spec 005 is reproducible.
 
-    The cell it leaves says so at once and the cell it reaches a cycle later, so
-    the two events of the move arrive in that order and never together.
+    A cell says it has gone empty at once and that it has filled once it is sure,
+    and being sure takes the same moment for every cell — so the two events of a
+    move still arrive together, and putting them in an order is a delay cell's
+    job further along.
     """
     r = Retina()
     r.update(0, OBJECT, AT_REST)
-    assert [str(e) for e in r.update(ON_LAG_MS, OBJECT, AT_REST)] == ["3 on"]
-    assert [str(e) for e in r.update(1000, OBJECT, TURNED_LEFT)] == ["3 off"]
-    assert [str(e) for e in r.update(1000 + ON_LAG_MS, OBJECT, TURNED_LEFT)] == ["5 on"]
+    assert [str(e) for e in r.update(SETTLE_MS, OBJECT, AT_REST)] == ["3 on"]
+    r.update(1000, OBJECT, TURNED_LEFT)
+    assert [str(e) for e in r.update(1000, OBJECT, TURNED_LEFT)] == []
     assert r.busy_cell() == 5
 
 
@@ -43,28 +45,33 @@ def test_the_cells_never_share_an_edge():
         assert sum(c.occupied for c in r.cells) == 1
 
 
-def test_a_move_is_always_an_off_and_then_an_on():
-    """What the correlation cells of Version C read: the order, never a tie."""
+def test_a_move_leaves_one_cell_and_reaches_the_next_at_the_same_instant():
+    """Which is why an order has to be made downstream, by a delay cell.
+
+    Every cell takes the same moment to be sure, so the pair is shifted whole
+    and neither event overtakes the other.
+    """
     r = Retina()
-    r.update(0, OBJECT, AT_REST)
-    r.update(ON_LAG_MS, OBJECT, AT_REST)
+    for t in range(0, SETTLE_MS + 1):
+        r.update(t, OBJECT, AT_REST)
     head, seen = 0.0, []
-    for t in range(ON_LAG_MS, 4000, TICK_MS):
+    for t in range(SETTLE_MS + 1, 4000, TICK_MS):
         head += 0.2 * TICK_MS / 10
         seen += [(t, e.p, e.address[0]) for e in r.update(t, OBJECT, head)]
     moves = [(a, b) for a, b in zip(seen, seen[1:]) if a[1] is OFF]
     assert moves
     for (t_off, _, off_cell), (t_on, p, on_cell) in moves:
-        assert p is ON and t_on > t_off and abs(on_cell - off_cell) == 1
+        assert p is ON and t_on - t_off == SETTLE_MS and abs(on_cell - off_cell) == 1
 
 
 def test_it_says_nothing_while_nothing_changes():
     """Spec 001: a sensor emits nothing at all while its input is constant."""
     r = Retina()
     r.update(0, OBJECT, AT_REST)
-    r.update(ON_LAG_MS, OBJECT, AT_REST)   # the object turning up is a change
+    for t in range(0, SETTLE_MS + 1):      # the object turning up is a change
+        r.update(t, OBJECT, AT_REST)
     assert stream(r, [(t, OBJECT, AT_REST)
-                      for t in range(ON_LAG_MS + TICK_MS, 4000, TICK_MS)]) == []
+                      for t in range(SETTLE_MS + 1, 4000, TICK_MS)]) == []
 
 
 def test_two_events_from_one_cell_are_never_closer_than_t_ref():

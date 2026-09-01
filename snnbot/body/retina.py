@@ -6,27 +6,27 @@ and empty otherwise. Going from empty to busy fires ON, the other way OFF.
 Every cell works out its own occupancy from the object and the head angle and
 looks at nothing else, so no cell needs another cell's state.
 
-A cell reports becoming busy one cycle after it happens, and becoming empty at
-once. Without that gap the two events of a move carry the same time — the object
-leaves one cell in the very instant it reaches the next — and there is no order
-left for anything downstream to read. With it, a move is always an OFF followed
-by an ON, which is what specs 001 and 005 have described all along.
+Both are reported the instant they happen. The two events of a move therefore
+carry the same time, the object leaving one cell exactly as it reaches the next,
+and putting them in an order is the job of a delay cell downstream — of whatever
+wants the order, rather than of the eye, which should not be shading when it saw
+something to suit what comes after.
 """
 
 from ..events import Event, ON, OFF
-from ..params import CELL_ANGLE_DEG, EYE_CELLS, ON_LAG_MS, T_REF_MS
+from ..params import CELL_ANGLE_DEG, EYE_CELLS, SETTLE_MS, T_REF_MS
 
 
 class Cell:
-    def __init__(self, index, cells, cell_angle, t_ref_ms, on_lag_ms):
+    def __init__(self, index, cells, cell_angle, t_ref_ms, settle_ms=0):
         self.index = index
         self._offset = ((cells + 1) / 2 - index) * cell_angle   # degrees left of the head
         self._half = cell_angle / 2
         self._t_ref = t_ref_ms
-        self._on_lag = on_lag_ms
+        self._settle = settle_ms    # how long a thing must stay before it counts
+        self._since = None          # when it arrived, if it has
         self.occupied = False       # where the object really is
-        self.busy = False           # what the cell has got round to saying
-        self._due = None            # when the ON it owes falls due
+        self.busy = False           # what it has said about that
         self._last_t = None
 
     def looks_at(self, head_deg):
@@ -48,23 +48,22 @@ class Cell:
         # cancel that head start out.
         away = object_deg - self.looks_at(head_deg)
         self.occupied = -self._half <= away < self._half
-
         if not self.occupied:
-            self._due = None        # it left before the ON was ever due
+            self._since = None
             return self._spike(t, OFF) if self.busy else None
-
-        if not self.busy and self._due is None:
-            self._due = t + self._on_lag
-        if self._due is not None and t >= self._due:
-            self._due = None
-            return self._spike(t, ON)
-        return None
+        if self.busy:
+            return None
+        if self._since is None:
+            self._since = t
+        # A cell that needs a moment to be sure is not a cell lying about when it
+        # saw something. What it will not report is anything gone before it settled.
+        return self._spike(t, ON) if t - self._since >= self._settle else None
 
 
 class Retina:
     def __init__(self, cells=EYE_CELLS, cell_angle=CELL_ANGLE_DEG, t_ref_ms=T_REF_MS,
-                 on_lag_ms=ON_LAG_MS):
-        self.cells = [Cell(i, cells, cell_angle, t_ref_ms, on_lag_ms)
+                 settle_ms=SETTLE_MS):
+        self.cells = [Cell(i, cells, cell_angle, t_ref_ms, settle_ms)
                       for i in range(1, cells + 1)]
 
     def update(self, t, object_deg, head_deg):
@@ -74,8 +73,8 @@ class Retina:
     def busy_cell(self):
         """Which cell the object is on, read as a number the way Version A does.
 
-        This is the occupancy itself, not what the spiking cells have reported,
-        so it does not wait for the lag. Nothing spiking may ask for it.
+        This is the occupancy itself, not what the spiking cells have reported.
+        Nothing spiking may ask for it.
         """
         for c in self.cells:
             if c.occupied:

@@ -42,6 +42,8 @@ The time window has a minimum and maximum value, so to discard spikes arriving a
 #### The window is what the cell measures
 A pair of these tells one direction from the other, and that is all it tells while every cell of the layer carries the same window. What settles a direction is *which* input came first; what a window settles is *how long* the one waited for the other. Give different cells different windows and the layer stops reporting only where something went and starts reporting **how fast it got there**.
 
+Which is a delay cell on the predecessor, tuned to the transit — the window and the delay being two descriptions of the same thing, and the window the cheaper one to implement.
+
 Which is worth spelling out, because it is not where one would look for it. Speed is not in how far a thing jumps between one report and the next: an eye reports far too often for anything to skip past a cell unseen. In [Vehicle 1](005-vehicle-1.md) that would need nine thousand degrees a second, against the eighty its fastest effector can turn the head. Everything always moves from one cell to the one beside it, at every speed there is.
 
 Speed is in the interval instead — how long a thing takes to cross a cell, which for Vehicle 1 runs from about 112 ms when the head sweeps at its fastest to over two seconds when it barely creeps, a range of some twenty to one:
@@ -64,6 +66,26 @@ The bands are cut at the geometric mean between one transit time and the next, s
 Reading a speed and having a use for one are different things. Fed to the vehicle that learns its own wiring, these cells make it worse rather than better — unless it is taught against something that moves, there being no speeds to learn about otherwise but its own. [Spec 005](005-vehicle-1.md) has the numbers.
 
 Which puts the layer's cells that never fire to work. Of the 72 pairs in [Version C](005-vehicle-1.md) only the 16 adjacent ones can ever occur, and the other 56 looked like a fully connected layer being wasteful. They are not: they are where speed is, and they were idle only because every cell was given the same window, and a window too short for any transit — the 10 to 50 ms that orders two simultaneous events is nowhere near the 112 ms to 2 s a movement takes.
+
+### Delay Cell
+The plainest of the lot: one input, one output, and the same spike again some time later. It works nothing out and remembers nothing but how long it has left to wait.
+
+![A delay cell](../docs/images/delay_cell.png)
+
+Biology has it both ways — a slow axon or a slow synapse puts the delay in the connection, a chain of cells or one that charges slowly to threshold puts it in a cell — and having it as a cell here is what keeps everything else to cells and connections, with nothing that is neither.
+
+It earns its place by being the same cell in two opposite positions, which is worth reading twice because they look alike and are not:
+
+- **Delaying the successor makes an order.** Two events that happen at the same instant cannot be told apart by which came first, and the only way to order them is to hold one back. This is what puts the OFF and the ON of a move between neighbouring cells of an eye into the order a correlation cell reads.
+- **Delaying the predecessor makes a coincidence.** If a thing takes some time to get from one place to the next, holding the first report back by that much makes the two arrive together. This is what tunes a cell to a speed, and it is how a real motion detector works.
+
+And it belongs to the cell that fires, not to the cell that listens. One per cell of the eye per delay, and they feed every correlation cell there is: nine cells and five delays is forty five of them, against one for each of the 72 x 5 correlation cells if each kept its own.
+
+Which is where the eye's lag goes, and moving it turned out to separate two jobs that had been doing each other's work.
+
+A retina reporting the ON of a cell later than the OFF is a sensor shading when it saw something to suit what comes after, and the order belongs downstream in the thing that wants it. But that lag was doing something else as well: by holding the arrival back it never reported one that had gone again in the meantime, and a head trembling at a cell boundary does exactly that. Taking it out altogether left the eye honest and buried everything downstream — Version A's eye going from 9 spikes in a run to 4809, and the vehicle that learns its own wiring falling from about ten seconds on the object to six and a half.
+
+So the eye keeps a **settling time**, and it is a different thing from a lag: a cell says a thing has arrived once it has been there a moment, and says nothing about one that came and went inside that moment. Five milliseconds is enough to lose the trembling and keep every real crossing, which take a hundred and more. That is not a sensor lying about when — it is one that needs a moment to be sure, which every real one does. The order is still made downstream, by the delay cell, out of two events the eye reports together.
 
 ### Coincidence Cell
 This cell have many inputs connections and fires if the mayority of the inputs arrives at the same time.

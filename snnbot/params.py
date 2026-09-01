@@ -18,13 +18,17 @@ MAX_RATE_HZ = 1000 // REFRACTORY_MS   # 500 Hz, the fastest anything can emit
 EYE_CELLS = 9                     # SPEC 005: 1x9
 CELL_ANGLE_DEG = 9.0              # PROVISIONAL: spec 005 leaves it to be fixed
 T_REF_MS = REFRACTORY_MS          # SPEC 001, floored by the refractory period
-ON_LAG_MS = 20                    # SPEC 005: a cell reports becoming busy this
-                                  # much after it happens, while it reports
-                                  # becoming empty at once. That gap is what puts
-                                  # the two events of a move in an order, which is
-                                  # what the correlation cells of spec 010 read,
-                                  # so it has to land inside their window — and
-                                  # well inside it, not on an edge.
+SETTLE_MS = 5                     # PROVISIONAL: how long a thing has to stay
+                                  # in a cell of the eye before the cell will
+                                  # say so. Not a lie about when it was seen:
+                                  # a sensor that needs a moment to be sure.
+ORDER_DELAY_MS = 20               # SPEC 010: the eye reports a cell going empty
+                                  # and the next going busy at the very same
+                                  # instant, so something has to hold one back
+                                  # for a correlation cell to have an order to
+                                  # read. A delay cell on the arrival does it,
+                                  # and it lands well inside their window rather
+                                  # than on an edge of it.
 
 # --- proprioception: spec 001 (threshold based), spec 005 ---
 PROP_SENSORS = 10                 # SPEC 005: 1x10 per actuator

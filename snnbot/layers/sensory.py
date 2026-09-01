@@ -14,8 +14,9 @@ nowhere to go from there.
 import math
 
 from ..events import Event, ON, OFF
+from .cells import DelayBank
 from ..params import (BABBLE_EVERY_MS, CELL_ANGLE_DEG, CORRELATION_MAX_MS,
-                      CORRELATION_MIN_MS, DEG_PER_SPIKE, EFFECTORS,
+                      CORRELATION_MIN_MS, DEG_PER_SPIKE, EFFECTORS, ORDER_DELAY_MS,
                       ELIGIBILITY_MS, EXPLORE, EYE_CELLS, LEARNING_RATE,
                       STEERING, TICK_MS, WEIGHT_MAX)
 
@@ -102,9 +103,13 @@ class CorrelationReflex:
     places. Any one of them is enough to wake it.
     """
 
-    def __init__(self, wiring=None, window=(CORRELATION_MIN_MS, CORRELATION_MAX_MS)):
+    def __init__(self, wiring=None, window=(CORRELATION_MIN_MS, CORRELATION_MAX_MS),
+                 cells=EYE_CELLS, order_delay_ms=ORDER_DELAY_MS):
         self.wiring = correlation_wiring() if wiring is None else wiring
         self.window = window
+        # The eye reports a cell going empty and the next going busy at the same
+        # instant. Holding the arrival back is what leaves an order to read.
+        self.later = DelayBank(range(1, cells + 1), order_delay_ms)
         self.awake = None
         self._left = {}                 # cell -> when it reported going empty
 
@@ -117,11 +122,8 @@ class CorrelationReflex:
         for event in eye:
             if event.p is OFF:
                 self._left[event.address[0]] = t
-        for event in eye:
-            if event.p is not ON:
-                continue
-            j = event.address[0]
-            low, high = self.window
+        low, high = self.window
+        for j in self.later.update(t, [e.address[0] for e in eye if e.p is ON]):
             came_from = [(when, i) for i, when in self._left.items()
                          if i != j and low <= t - when <= high]
             if came_from:
