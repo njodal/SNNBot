@@ -11,8 +11,11 @@ the faster the effector it wakes. The middle cell wakes nothing: there is
 nowhere to go from there.
 """
 
+import math
+
 from ..events import Event, ON, OFF
-from ..params import (BABBLE_EVERY_MS, CORRELATION_MAX_MS, CORRELATION_MIN_MS, EFFECTORS,
+from ..params import (BABBLE_EVERY_MS, CELL_ANGLE_DEG, CORRELATION_MAX_MS,
+                      CORRELATION_MIN_MS, DEG_PER_SPIKE, EFFECTORS,
                       ELIGIBILITY_MS, EXPLORE, EYE_CELLS, LEARNING_RATE,
                       STEERING, TICK_MS, WEIGHT_MAX)
 
@@ -233,3 +236,77 @@ class LearningReflex(CorrelationReflex):
                 self.drive(t, layers, self.awake)
 
         return [Event(t, move, ON)] if move is not None else []
+
+
+def speed_bands(cell_angle=CELL_ANGLE_DEG, effectors=EFFECTORS, per_spike=DEG_PER_SPIKE):
+    """One band of transit times per speed the body can move the head at.
+
+    A cell of the eye takes `cell_angle / speed` to cross, so each effector of
+    spec 003 puts one transit time on the clock. The bands are cut at the
+    geometric mean between neighbours, so they tile without overlapping and each
+    holds exactly one of those times — the one it is tuned to.
+    """
+    transits = sorted(cell_angle / (hz * per_spike) * 1000 for hz, _ in effectors)
+    cuts = [math.sqrt(a * b) for a, b in zip(transits, transits[1:])]
+    edges = [transits[0] / 2] + cuts + [transits[-1] * 2]
+    return [(lo, hi, tuned) for (lo, hi), tuned in zip(zip(edges, edges[1:]), transits)]
+
+
+class SpeedCell:
+    """A correlation cell watching two cells of the eye that are not neighbours.
+
+    Its predecessor and successor are a gap apart, so the interval between them
+    is not the instant a boundary is crossed but the time taken to cross what
+    lies between — which is a speed. Its window says which one.
+    """
+
+    def __init__(self, pred, succ, low, high, tuned_to):
+        self.pred, self.succ = pred, succ
+        self.low, self.high = low, high
+        self.tuned_to = tuned_to            # the transit time it is centred on
+
+    @property
+    def crossed(self):
+        """How many cells of the eye lie between the two it watches."""
+        return abs(self.succ - self.pred) - 1
+
+    def speed(self, cell_angle=CELL_ANGLE_DEG):
+        """The speed it is tuned to, in degrees a second."""
+        return self.crossed * cell_angle / (self.tuned_to / 1000)
+
+    def __repr__(self):
+        return f"({self.pred}->{self.succ} @ {self.tuned_to:.0f} ms)"
+
+
+class SpeedLayer:
+    """The cells of the layer that report how fast, rather than where to.
+
+    One per ordered pair with a gap in it, per band. They fire on the same
+    events as the cells that report direction and are told apart from them only
+    by what they are wired to and how long they are willing to wait.
+    """
+
+    def __init__(self, cells=EYE_CELLS, bands=None):
+        bands = speed_bands() if bands is None else bands
+        self.cells = [SpeedCell(i, j, lo, hi, tuned)
+                      for j in range(1, cells + 1)
+                      for i in range(1, cells + 1) if abs(i - j) > 1
+                      for lo, hi, tuned in bands]
+        self._left = {}
+
+    def update(self, t, eye):
+        """Which of them just fired, if any."""
+        for event in eye:
+            if event.p is OFF:
+                self._left[event.address[0]] = t
+        fired = []
+        for event in eye:
+            if event.p is not ON:
+                continue
+            for cell in self.cells:
+                if cell.succ != event.address[0]:
+                    continue
+                when = self._left.get(cell.pred)
+                if when is not None and cell.low <= t - when <= cell.high:
+                    fired.append(cell)
+        return fired
