@@ -96,7 +96,7 @@ Inhibition sits awkwardly. The effector layer is supposed to inhibit its own cel
 ## Open questions
 
 - Is there one cell here, or three unrelated rules that happen to speak in spikes? A common model would make a new kind cheap to add, and would say what a cell of this project can and cannot compute.
-- Does a cell need a membrane and a threshold? Nothing so far has wanted one, but nothing so far weighs more than two inputs.
+- Does a cell need a membrane and a threshold? Nothing did until the value cell of Version E in [spec 005](005-vehicle-1.md), which is reached by every correlation cell at once and has to fire by what they add up to. Everything before it reacts to a pattern between two inputs; that one weighs many against each other, which is what a cortex is for.
 - Do cells have a refractory period, as the sensors of spec 001 do? Nothing stops one firing on consecutive cycles today.
 - Lateral inhibition: wiring between cells, or something the layer does to them?
 - Windows for speed are the size of the movements they measure, hundreds of milliseconds, while windows for order are tens. One kind of cell with a window that spans either, or two kinds?

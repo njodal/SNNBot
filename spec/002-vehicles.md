@@ -15,6 +15,8 @@ At the bottom is the *body*: the sensors that face the environment, the propioce
 
 Nothing crosses those levels other than spikes, so what changes from one vehicle to the next is what hangs off the bottom level and how the cortex is wired, not the shape of the stack.
 
+The cortex stayed empty for a long while: every vehicle up to [Version D](005-vehicle-1.md) is a reflex, the sensory layer reaching the effector layer directly. Version E is the first to want one, and what it puts there judges rather than acts — which is why it belongs above a body it cannot touch.
+
 The Sensory Layer, Cortex and Effector Layer are composed of [cells](010-cells.md).
 
 ### Sensory Layer

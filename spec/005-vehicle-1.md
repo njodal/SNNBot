@@ -271,3 +271,44 @@ Against the plain vehicle they do not win by much. Over twenty seeds the two hol
 - How strong must a weight be before a cell stops babbling, and does it ever go back?
 - Standing still in the middle earns nothing. The vehicle is paid for *improving*, and improving means having got worse first, so a vehicle that wanders off and comes back is paid for the coming back. It does not do that here, but nothing in the reward says it must not.
 - Ten of the sixteen cells that can fire is poor coverage for four minutes of schooling. Teaching it against an object that is not always in the same place would visit more of them.
+
+## Version E: it works out what is worth doing
+
+Version D is handed the one thing that matters most. `outcome` tells it, for each of the 72 correlation cells, whether that cell means the object came nearer the middle or went further from it — a partition of 32 good, 32 bad and 8 neither, worked out by whoever wrote it down. The vehicle learns which effector to wake, but never what *better* is.
+
+This version is not handed it.
+
+### Something has to be innate
+Nothing can learn that one thing is better than another out of nothing at all. There has to be a first preference, and the whole question is how small it can be made.
+
+Small as **one cell of the eye and its own two sensors**. The middle cell going busy means *arrived*; the middle cell going empty means *lost it*. Two spikes, against a table of 72 entries. Nothing else is given, and everything else — including which of the 72 correlation cells are the good ones — has to be worked out from those two.
+
+That is still something innate, but of the kind an animal is born with rather than told. The middle of an eye is special because the whole animal is built around it.
+
+### A value is not something a cell knows
+The way to learn from a rare signal is to let it spread backwards: a cell that tends to be followed by *arrived* becomes worth reaching, and then a cell that tends to be followed by **that** one does too. Which needs a value per cell — and the obvious way to keep one, a number held inside the cell, is not allowed here. [Spec 010](010-cells.md) says a cell knows the spikes at its inputs and nothing else, not another cell's state, and working out how a value has changed means reading two of them.
+
+So the value is not kept in the cell. **It is the weight of that cell's connection into another one.** Nothing is stored anywhere except in connections, which is where this project has kept everything all along, and where a brain keeps it too.
+
+That takes three cells, and they are the first occupants of the **cortex** — the box that has sat empty in [spec 002](002-vehicles.md) since the beginning, above the body and unable to touch it, which is exactly what something that judges rather than acts should be:
+
+![The critic: three cells, and the value in the connections](../docs/images/critic.png)
+
+A circle is one cell and a box a group of them, and the delay is neither — it belongs to the connection it sits on, the way a real one belongs to the axon it travels down.
+
+- The **reward** cell is the innate drive, and it is two wires: excited by the middle cell going busy, inhibited by it going empty. It learns nothing, ever.
+- The **value** cell is reached by every correlation cell, each through a weight. Its firing is how good the vehicle's situation is, and that judgement lives entirely in those weights.
+- The **error** cell takes the reward, takes the value as it is now, and takes the value as it was a moment ago through a delay and an inhibitory connection — so what it fires is the difference between what just happened and what was expected. That is the signal every weight in the vehicle learns from, the actor's and the critic's alike.
+
+The delay is the same trick the correlation cells use. The subtraction is an inhibitory input. Every rule stays local: a connection changes by its own eligibility and by a signal that arrives at it, and no cell ever reads another.
+
+### How to tell whether it worked
+Not by the time it holds the object, which has told the versions apart poorly. By whether it **rediscovers the partition**: sort the correlation cells by the weight each has onto the value cell, compare against the 32 good and 32 bad that `outcome` was written to say, and count how many it puts on the right side.
+
+That is a number this project has not had before — a claim about what the vehicle understood, not about how well it did. And it can be beaten: the written partition calls a move from cell 6 to cell 4 *neither*, the distance to the middle being one either way, when what actually happened is that the object crossed the middle. A vehicle that finds those worth something has found something the spec got wrong.
+
+### What is likely to go wrong
+
+- **The signal is rare.** Every transition used to carry one; now only arriving at the middle does, which at the outset happens almost never. That is what the value cell is for, and it may still not be enough.
+- **It can be farmed.** If arriving pays, then leaving in order to arrive again pays. Worse, a change-based eye cannot report *still there*, so the reward can only ever be a moment and never a state — the same asymmetry already listed as open for Version D, here with a shorter fuse. The blow for leaving must weigh at least what the arrival pays.
+- **The delay is a real time, and transits are not.** Crossing a cell takes anywhere from 112 ms to over two seconds, twenty to one. One delay cannot match both ends, which is the same difficulty the correlation cells met — and it was answered there by having several, each with its own.
