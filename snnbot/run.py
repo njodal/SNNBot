@@ -9,7 +9,7 @@ from .control import ProportionalController
 from .layers.sensory import CorrelationReflex, LearningReflex, Reflex
 
 from .recorder import Recorder
-from .world import World, experiment_path
+from .world import World, experiment_path, wandering
 
 
 def run(seconds=10.0, seed=1, object_deg=18.0, wired=False, controller=None,
@@ -43,8 +43,11 @@ def main():
     controller = ProportionalController() if args.pid else None
     reflex = Reflex() if args.reflex else CorrelationReflex() if args.correlation else None
     if args.learn:
-        reflex = LearningReflex(random.Random(args.seed))
-        taught, _ = run(args.learn, args.seed, args.object, reflex=reflex)
+        # The two go together: cells that read a speed, and an object that has
+        # one to read. Either alone leaves the vehicle worse off than neither.
+        reflex = LearningReflex(random.Random(args.seed), speed=True)
+        taught, _ = run(args.learn, args.seed, args.object, reflex=reflex,
+                        path=wandering(random.Random(args.seed + 7)))
         reflex.learning, reflex.explore = False, 0.0
         print(f"taught for {args.learn:g} s\n")
     path = experiment_path(args.object) if args.moving else None

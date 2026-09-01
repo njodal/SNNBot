@@ -6,6 +6,7 @@ never more than one cell of the eye occupied, which is what spec 005 asks for
 without having to model any lateral inhibition.
 """
 
+import bisect
 from dataclasses import dataclass
 from typing import Callable, Optional
 
@@ -47,4 +48,28 @@ def experiment_path(start_deg=OBJECT_START_DEG, still_ms=OBJECT_STILL_MS,
             return deg
         gone_right = min(t - still_ms - left_ms, right_ms) / 1000
         return deg - rate * gone_right
+    return where
+
+
+def wandering(rng, start_deg=OBJECT_START_DEG, span=(-35.0, 35.0),
+              rate=(2.0, 20.0), total_ms=1_200_000):
+    """An object that will not keep still: a new heading and a new speed, over
+    and over, for as long as anyone cares to watch.
+
+    For teaching a vehicle what a speed is. Taught against something that never
+    moves, the only speeds it ever sees are its own.
+    """
+    legs, t, deg = [], 0.0, start_deg
+    while t < total_ms:
+        target = rng.uniform(*span)
+        speed = rng.uniform(*rate)
+        legs.append((t, deg, target, max(abs(target - deg) / speed * 1000, 1.0)))
+        t += legs[-1][3]
+        deg = target
+    starts = [leg[0] for leg in legs]
+
+    def where(t):
+        i = bisect.bisect_right(starts, t) - 1
+        began, was, goes, over = legs[max(i, 0)]
+        return was + (goes - was) * min((t - began) / over, 1.0)
     return where

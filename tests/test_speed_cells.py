@@ -68,3 +68,23 @@ def test_what_fires_says_how_fast_the_head_went():
             said += [c.speed() for c in layer.update(t, retina.update(t, 0.0, head))]
         assert said, f"nothing fired at {speed} deg/s"
         assert statistics.median(said) == speed
+
+
+def test_a_wandering_object_moves_at_more_than_one_speed():
+    """What teaching a vehicle about speed needs, and a still object cannot give."""
+    import random
+    from snnbot.world import wandering
+
+    where = wandering(random.Random(0))
+    seen = [where(t) for t in range(0, 60_000, 100)]
+    assert min(seen) < -20 and max(seen) > 20            # it gets about
+    speeds = {round(abs(b - a) / 0.1) for a, b in zip(seen, seen[1:])}
+    assert len(speeds) > 5                               # and not always alike
+
+
+def test_the_same_seed_wanders_the_same_way():
+    import random
+    from snnbot.world import wandering
+
+    a, b = wandering(random.Random(4)), wandering(random.Random(4))
+    assert [a(t) for t in range(0, 20_000, 250)] == [b(t) for t in range(0, 20_000, 250)]

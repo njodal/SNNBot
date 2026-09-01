@@ -90,7 +90,7 @@ And while the object is creeping left the eye **chatters at the cell boundary** 
 
 Which is worth knowing before the number that judges a run is settled: this vehicle is at its noisiest exactly where it is doing best. Most of that noise no longer reaches the eye's output, the 20 ms the eye waits before reporting a cell as busy being longer than most of the trembling — but the head still trembles, and the effectors still pay for it. A faster object is easier on it — it simply settles a cell behind and stays there. Curing the chatter would mean hysteresis, or a dead zone around zero error, and neither is decided yet.
 
-### Speed, which it does not want
+### Speed, which it wants only if taught to
 The speed cells of [spec 010](010-cells.md) were fed to it, every one of their 280 joining the vote alongside the cell that says which way the object went. It does worse with them. Over twelve seeds, taught four minutes each:
 
 | what the layer offers it | holds the object in the middle |
@@ -101,7 +101,20 @@ The speed cells of [spec 010](010-cells.md) were fed to it, every one of their 2
 
 Two reasons it was never likely to help. Centring a thing is a question about **where** it is, and the cell that reports a direction already carries that; a speed says nothing further about which way to turn. And the 280 extra cells have to be learnt from the same reward as the rest, so they mostly add states that dilute what the few useful cells have worked out — visible in the middle row, where letting them all vote is worse than letting the most certain one decide.
 
-There is a third reason, and it is the interesting one. The vehicle is taught against **an object that never moves**, so that every change on its retina is its own doing. Which means the only speeds it ever sees are its own. A cell that reports how fast something crossed the eye is, during all of its schooling, reporting how fast the head swung — never how fast the world went. To learn what an object's speed means it would have to be taught against a moving one, and that is the very thing given up to keep the credit clean.
+There is a third reason, and it is the one that turned out to matter. The vehicle was taught against **an object that never moves**, so that every change on its retina was its own doing. Which means the only speeds it ever saw were its own. A cell reporting how fast something crossed the eye was, throughout its schooling, reporting how fast the head swung — never how fast the world went.
+
+So it was taught again against an object that wanders, picking a new heading and a new speed over and over, and the sign changed:
+
+| taught against | what the layer offers | holds the object in the middle |
+|----------------|-----------------------|--------------------------------|
+| an object that never moves | direction only | 9.67 s |
+| an object that never moves | direction and speed | 7.77 s |
+| an object that wanders | direction only | 6.88 s |
+| an object that wanders | direction and speed | 9.78 s |
+
+Neither half is any use on its own. Cells that read a speed are a liability with nothing to read; a moving object during training is a liability with nothing to read it — it muddies the credit, exactly as feared, and costs the direction-only vehicle nearly three seconds. Together they recover all of it.
+
+Against the plain vehicle they do not win by much. Over twenty seeds the two hold the object for 9.64 s and 10.14 s, which is the same number given the spread. What differs is the spread itself, 2.94 against 2.36, and the worst run of the twenty: 3.72 s against 6.20. The taught-on-movement vehicle is not better on its good days. It has fewer bad ones.
 
 ### Open questions
 
@@ -226,7 +239,7 @@ That is one run of one seed, though, and this vehicle varies a great deal from s
 
 So it learns — an untaught vehicle manages almost nothing, and a taught one lands in the same range as the wiring put in by hand. But it does not yet beat it. The spread across seeds is wider than the difference between the two, which means a single run of Version D says more about its seed than about learning, and a good one should not be reported as a result.
 
-### Speed, which it does not want
+### Speed, which it wants only if taught to
 The speed cells of [spec 010](010-cells.md) were fed to it, every one of their 280 joining the vote alongside the cell that says which way the object went. It does worse with them. Over twelve seeds, taught four minutes each:
 
 | what the layer offers it | holds the object in the middle |
@@ -237,7 +250,20 @@ The speed cells of [spec 010](010-cells.md) were fed to it, every one of their 2
 
 Two reasons it was never likely to help. Centring a thing is a question about **where** it is, and the cell that reports a direction already carries that; a speed says nothing further about which way to turn. And the 280 extra cells have to be learnt from the same reward as the rest, so they mostly add states that dilute what the few useful cells have worked out — visible in the middle row, where letting them all vote is worse than letting the most certain one decide.
 
-There is a third reason, and it is the interesting one. The vehicle is taught against **an object that never moves**, so that every change on its retina is its own doing. Which means the only speeds it ever sees are its own. A cell that reports how fast something crossed the eye is, during all of its schooling, reporting how fast the head swung — never how fast the world went. To learn what an object's speed means it would have to be taught against a moving one, and that is the very thing given up to keep the credit clean.
+There is a third reason, and it is the one that turned out to matter. The vehicle was taught against **an object that never moves**, so that every change on its retina was its own doing. Which means the only speeds it ever saw were its own. A cell reporting how fast something crossed the eye was, throughout its schooling, reporting how fast the head swung — never how fast the world went.
+
+So it was taught again against an object that wanders, picking a new heading and a new speed over and over, and the sign changed:
+
+| taught against | what the layer offers | holds the object in the middle |
+|----------------|-----------------------|--------------------------------|
+| an object that never moves | direction only | 9.67 s |
+| an object that never moves | direction and speed | 7.77 s |
+| an object that wanders | direction only | 6.88 s |
+| an object that wanders | direction and speed | 9.78 s |
+
+Neither half is any use on its own. Cells that read a speed are a liability with nothing to read; a moving object during training is a liability with nothing to read it — it muddies the credit, exactly as feared, and costs the direction-only vehicle nearly three seconds. Together they recover all of it.
+
+Against the plain vehicle they do not win by much. Over twenty seeds the two hold the object for 9.64 s and 10.14 s, which is the same number given the spread. What differs is the spread itself, 2.94 against 2.36, and the worst run of the twenty: 3.72 s against 6.20. The taught-on-movement vehicle is not better on its good days. It has fewer bad ones.
 
 ### Open questions
 
