@@ -146,7 +146,7 @@ Any sensor built to this spec is described by:
 
 ## Open questions
 
-- Values for `θ` and `t_ref` — to be fixed once the simulator's time base exists.
+- A value for `θ`. `t_ref` has one: it cannot be shorter than the 2 ms refractory period of [spec 004](004-simulator.md), and is that.
 - The simulator will likely render stimuli as frames internally. What frame rate
   is fine before the discretisation shows up as artefacts in the event stream?
 - Which sensors beyond vision does the bot need (proximity, contact/whiskers,

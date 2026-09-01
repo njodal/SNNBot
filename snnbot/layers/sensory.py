@@ -12,7 +12,7 @@ nowhere to go from there.
 """
 
 from ..events import Event, ON, OFF
-from ..params import (BABBLE_EVERY_MS, CORRELATION_WINDOW_MS, EFFECTORS,
+from ..params import (BABBLE_EVERY_MS, CORRELATION_MAX_MS, CORRELATION_MIN_MS, EFFECTORS,
                       ELIGIBILITY_MS, EXPLORE, EYE_CELLS, LEARNING_RATE,
                       STEERING, TICK_MS, WEIGHT_MAX)
 
@@ -99,9 +99,9 @@ class CorrelationReflex:
     places. Any one of them is enough to wake it.
     """
 
-    def __init__(self, wiring=None, window_ms=CORRELATION_WINDOW_MS):
+    def __init__(self, wiring=None, window=(CORRELATION_MIN_MS, CORRELATION_MAX_MS)):
         self.wiring = correlation_wiring() if wiring is None else wiring
-        self.window = window_ms
+        self.window = window
         self.awake = None
         self._left = {}                 # cell -> when it reported going empty
 
@@ -118,8 +118,9 @@ class CorrelationReflex:
             if event.p is not ON:
                 continue
             j = event.address[0]
+            low, high = self.window
             came_from = [(when, i) for i, when in self._left.items()
-                         if i != j and 0 < t - when <= self.window]
+                         if i != j and low <= t - when <= high]
             if came_from:
                 return max(came_from)[1], j     # the most recent one it left
         return None
@@ -176,8 +177,9 @@ class LearningReflex(CorrelationReflex):
 
     def __init__(self, rng, cells=EYE_CELLS, effectors=len(EFFECTORS),
                  lr=LEARNING_RATE, eligibility_ms=ELIGIBILITY_MS, explore=EXPLORE,
-                 babble_every_ms=BABBLE_EVERY_MS, window_ms=CORRELATION_WINDOW_MS):
-        super().__init__(wiring=correlation_wiring(cells), window_ms=window_ms)
+                 babble_every_ms=BABBLE_EVERY_MS,
+                 window=(CORRELATION_MIN_MS, CORRELATION_MAX_MS)):
+        super().__init__(wiring=correlation_wiring(cells), window=window)
         self.rng, self.lr, self.explore = rng, lr, explore
         self.learning = True        # turned off to see what it has got, not to teach
         self._eligibility_ms, self._babble_every = eligibility_ms, babble_every_ms

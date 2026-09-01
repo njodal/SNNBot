@@ -15,7 +15,9 @@ An excitatory connection is drawn as a filled circle against the cell and an inh
 
 What travels on any of those lines is a spike, and only a spike, a signal that has happened rather than a value that can be read. 
 
-Nothing emits faster than one spike per 10 ms, the time a spike takes in [spec 004](004-simulator.md). A cell is bound by that like everything else, so 100 Hz is the most any of them can do.
+A cell that has just fired is deaf to itself for a **refractory period** — 2 ms in [spec 004](004-simulator.md) — so 500 Hz is the most any of them can do. As in biology, it is that and not the width of the spike, about a millisecond, that sets the ceiling.
+
+Which is far above anything used: the fastest effector of [spec 003](003-neuromorphic-actuators.md) runs at 100 Hz.
 
 The input connections have a 'weight' value, to indicate if the connection is mature or not. If the connection is not mature the spike will not go to the cell. Weight values is in the (0, 1) interval with values above 0.7 are considered mature.
 

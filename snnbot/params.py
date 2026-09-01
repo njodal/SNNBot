@@ -6,18 +6,25 @@ waiting to be made, not an implementation detail.
 """
 
 # --- time: spec 004 ---
-TICK_MS = 10                      # SPEC 004: a spike takes 10 ms to happen
-MAX_RATE_HZ = 1000 // TICK_MS     # 100 Hz, the fastest anything can emit
+TICK_MS = 1                       # SPEC 004: about what a spike takes, as in a
+                                  # real one — a millisecond or two
+REFRACTORY_MS = 2                 # SPEC 004: how long a cell is deaf to itself
+                                  # after firing. This, and not the width of the
+                                  # spike, is what caps a rate in biology and
+                                  # what caps it here
+MAX_RATE_HZ = 1000 // REFRACTORY_MS   # 500 Hz, the fastest anything can emit
 
 # --- the eye: spec 001 (change based), spec 005 ---
 EYE_CELLS = 9                     # SPEC 005: 1x9
 CELL_ANGLE_DEG = 9.0              # PROVISIONAL: spec 005 leaves it to be fixed
-T_REF_MS = TICK_MS                # SPEC 001, floored by the spike duration
-ON_LAG_MS = TICK_MS               # SPEC 005: a cell reports becoming busy one
-                                  # cycle after it happens, while it reports
+T_REF_MS = REFRACTORY_MS          # SPEC 001, floored by the refractory period
+ON_LAG_MS = 20                    # SPEC 005: a cell reports becoming busy this
+                                  # much after it happens, while it reports
                                   # becoming empty at once. That gap is what puts
                                   # the two events of a move in an order, which is
-                                  # what the correlation cells of version C read.
+                                  # what the correlation cells of spec 010 read,
+                                  # so it has to land inside their window — and
+                                  # well inside it, not on an edge.
 
 # --- proprioception: spec 001 (threshold based), spec 005 ---
 PROP_SENSORS = 10                 # SPEC 005: 1x10 per actuator
@@ -62,14 +69,20 @@ CONTROL_TICK_MS = TICK_MS         # SPEC 005: it acts as often as the spiking on
 KP = 2.0                          # SPEC 005: 1/s, so the eye closes the gap in
                                   # about half a second. Kp * tick stays far below
                                   # the 1 where it would start to overshoot.
-MAX_TURN_RATE = MAX_RATE_HZ * DEG_PER_SPIKE   # SPEC 005: 80 deg/s, what the
-                                  # spiking vehicle manages at its fastest
+MAX_TURN_RATE = STEERING[0][0] * DEG_PER_SPIKE   # SPEC 005: 80 deg/s, what the
+                                  # spiking vehicle manages at its fastest. Its
+                                  # fastest effector, that is, not the ceiling the
+                                  # refractory allows — nothing here emits at 500 Hz
 
 # --- Version C, the correlation cells: spec 005 ---
-CORRELATION_WINDOW_MS = 3 * TICK_MS   # PROVISIONAL: how long after its
-                                  # predecessor a successor still counts as the
-                                  # same move. The lag makes it exactly one
-                                  # cycle, so this only has to allow for that.
+# SPEC 010: how long after its predecessor a successor still counts as the same
+# move. Below the minimum the two are simultaneous rather than ordered, above the
+# maximum they have nothing to do with each other. The eye's lag of 20 ms sits
+# midway, with room on both sides — which is the whole reason the tick is a
+# millisecond: at ten, the window and its own resolution were the same number and
+# there was nowhere inside it to be.
+CORRELATION_MIN_MS = 10           # PROVISIONAL
+CORRELATION_MAX_MS = 50           # PROVISIONAL
 
 # --- Version D, learning the wiring: spec 005 ---
 LEARNING_RATE = 0.3               # PROVISIONAL: how much one reinforcing spike

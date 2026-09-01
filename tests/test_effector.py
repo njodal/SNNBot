@@ -5,12 +5,13 @@ import random
 import pytest
 
 from snnbot.layers.effector import Effector
+from snnbot.params import TICK_MS
 
 
 
 def emissions(cell, from_t, to_t, before=None):
     out = []
-    for t in range(from_t, to_t, 10):
+    for t in range(from_t, to_t, TICK_MS):
         if before:
             before(cell, t)
         if cell.update(t) is not None:

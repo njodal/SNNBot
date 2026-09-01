@@ -8,9 +8,11 @@
 A program that runs a vehicle in a world, on a laptop, with no hardware. It exists so the other specs can be executed instead of only read: the sensors of [spec 001](001-neuromorphic-sensors.md), the bodies of [spec 002](002-vehicles.md) and [spec 005](005-vehicle-1.md) and the actuators of [spec 003](003-neuromorphic-actuators.md) all become code that either satisfies its acceptance criteria or does not.
 
 ## Time
-A spike takes **10 ms** to happen. Nothing in the vehicle can go faster than that, which fixes two numbers that were open until now: no element can emit above **100 Hz**, and the refractory period `t_ref` of spec 001 cannot be shorter than 10 ms.
+A spike takes about **a millisecond**, which is roughly what one takes in a real neuron, and the simulator advances in **ticks of 1 ms**: one loop, everything stepping together.
 
-The simulator therefore advances in **ticks of 10 ms**, one loop, everything stepping together. A finer step would buy nothing: if the head turns in 10 ms jumps, the instant an object crosses from one cell to the next is quantised, but the retina cannot report that instant with any better resolution either, so the error is never more than the one tick that is already the limit of what the vehicle can perceive.
+What a cell can then emit is not capped by that. It is capped by a **refractory period of 2 ms**, the stretch after firing in which a cell is deaf to itself — which is what caps a rate in biology too, the width of the spike having little to do with it. That puts the ceiling at **500 Hz**, and floors the `t_ref` of spec 001 at 2 ms. Nothing in the vehicles built so far comes near the ceiling: their fastest effector runs at 100 Hz.
+
+The tick was ten times longer at first, on the reasoning that nothing could perceive anything finer. That held until cells began deciding by **when** their inputs arrived rather than that they had — the correlation cells of [spec 010](010-cells.md), which fire on one order and not the other, and the coincidence cells, which fire on things falling together. A window of 10 to 50 ms cannot measure anything if the grid it is measured on is also 10 ms: there would be a single instant inside the window and no way to be early or late within it. Biology keeps about twenty to one between the two — a spike of a millisecond against an integration window of twenty — and a millisecond tick restores that margin here.
 
 This is the one place where the simulator gets to differ from spec 001, which asks for no frame rate and no global clock, so it has to be kept honest:
 

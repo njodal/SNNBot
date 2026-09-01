@@ -145,7 +145,7 @@ def frame(t, head_deg, busy, object_deg, levels, raster, title="motor babbling",
     return im
 
 
-def animate(path="babbling.gif", seconds=8.0, seed=2, object_deg=18.0, every=5,
+def animate(path="babbling.gif", seconds=8.0, seed=2, object_deg=18.0, every=80,
             controller=None, moving=False, reflex=None):
     world = World(object_deg=object_deg,
                   path=experiment_path(object_deg) if moving else None)
@@ -188,7 +188,7 @@ def _taught(a):
 
 
 def learning(path="learning.gif", train_s=240.0, windows=((0, 8), (116, 124), (232, 240)),
-             seed=1, object_deg=18.0, every=10):
+             seed=1, object_deg=18.0, every=100):
     """Watch it being taught: the same eight seconds early, halfway and at the end.
 
     The object never moves, so the only thing that can make it visible is the
@@ -234,7 +234,7 @@ if __name__ == "__main__":
     p.add_argument("--correlation", action="store_true", help="Version C")
     p.add_argument("--learn", type=float, metavar="SECONDS",
                    help="Version D, taught for this long first")
-    p.add_argument("--every", type=int, default=5, help="ticks between frames")
+    p.add_argument("--every", type=int, default=80, help="ticks between frames")
     p.add_argument("--moving", action="store_true", help="the object slides left")
     a = p.parse_args()
     path, n = animate(a.out, a.seconds, a.seed, a.object, a.every,

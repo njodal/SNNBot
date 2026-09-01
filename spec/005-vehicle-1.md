@@ -41,7 +41,7 @@ Its sensors are analog:
 - **Eye**: a number from 1 to 9, which cell is active — nothing at all when no cell is.
 - **Eye angle**: a number from −40 to +40 degrees, positive when the eye is turned to the left, the same sense as everywhere else in this spec.
 
-Its actuator is the same pair, so what the controller puts out is not a force but a **rate of turn**: degrees per second, positive turning the eye to the left. It is capped at the 80 degrees per second the spiking vehicle manages at its fastest — 100 Hz of spikes into a step of 0.8 degrees. A reference that can outrun the vehicle it is a reference for is not much of a reference.
+Its actuator is the same pair, so what the controller puts out is not a force but a **rate of turn**: degrees per second, positive turning the eye to the left. It is capped at the 80 degrees per second the spiking vehicle manages at its fastest — its quickest effector, at 100 Hz, into a step of 0.8 degrees, which is well short of the 500 Hz the refractory period would allow. A reference that can outrun the vehicle it is a reference for is not much of a reference.
 
 The task is to bring whatever the eye sees to the middle of the eye, so the error is how far the active cell is from cell 5, in degrees:
 
@@ -71,9 +71,9 @@ in degrees per second, capped at ±80. With the error in degrees, `Kp` is in uni
 
 The output is a plain continuous number — unlike the spiking vehicle, which moves the head in steps of 0.8 degrees, this one turns it smoothly.
 
-The controller runs once every **10 ms**, the same tick as the simulator of [spec 004](004-simulator.md), so that it gets to act exactly as often as the spiking vehicle does and neither is favoured by being asked more often. The interval is a parameter and can be changed — a controller that runs more slowly than the body moves is a different thing to compare against, and a fair one to want.
+The controller runs once every tick, the 1 ms of the simulator of [spec 004](004-simulator.md), so that it gets to act exactly as often as the spiking vehicle does and neither is favoured by being asked more often. The interval is a parameter and can be changed — a controller that runs more slowly than the body moves is a different thing to compare against, and a fair one to want.
 
-Changing it is not free, though. The eye slows down as the error shrinks, but only at each tick: between ticks it keeps turning at whatever rate it was last told. So the eye closes `Kp × tick` of the gap on every step, and the pair has a limit — past `Kp × tick = 1` it starts overshooting, and past 2 it never settles. At 10 ms there is room to spare, since that would need a `Kp` above 100. At a tick of a second it would not: `Kp = 2` would be enough to break it.
+Changing it is not free, though. The eye slows down as the error shrinks, but only at each tick: between ticks it keeps turning at whatever rate it was last told. So the eye closes `Kp × tick` of the gap on every step, and the pair has a limit — past `Kp × tick = 1` it starts overshooting, and past 2 it never settles. At a millisecond there is room to spare, since breaking it would need a `Kp` above a thousand. At a tick of a second there is none: `Kp = 2` would be enough.
 
 ### The experiment
 The run both versions are put through, so that whatever is measured is measured on the same thing:
@@ -88,7 +88,7 @@ The eye comes to rest with the object at the **edge** of the middle cell rather 
 
 And while the object is creeping left the eye **chatters at the cell boundary** — look at how the eye's row of the raster fills up. Inside cell 5 the error is zero and the eye stands still while the object drifts out of it; the moment it crosses into cell 4 the error jumps a whole cell at once, the eye lunges at three times the speed the object is moving, and puts it back where it was. The head ends up trembling against the edge of a cell, and the eye fires about a hundred times a second over an object that is barely moving.
 
-Which is worth knowing before the number that judges a run is settled: this vehicle is at its noisiest exactly where it is doing best. A faster object is easier on it — it simply settles a cell behind and stays there. Curing the chatter would mean hysteresis, or a dead zone around zero error, and neither is decided yet.
+Which is worth knowing before the number that judges a run is settled: this vehicle is at its noisiest exactly where it is doing best. Most of that noise no longer reaches the eye's output, the 20 ms the eye waits before reporting a cell as busy being longer than most of the trembling — but the head still trembles, and the effectors still pay for it. A faster object is easier on it — it simply settles a cell behind and stays there. Curing the chatter would mean hysteresis, or a dead zone around zero error, and neither is decided yet.
 
 ### Open questions
 
@@ -137,7 +137,9 @@ Each of this cells is connected to an effector cell.
 ### The order the cells read
 The two events of a move only come in an order if something makes them. With the cells of the eye covering the world edge to edge and the object a point, it leaves one cell in the very instant it reaches the next, and both events carry the same time — a correlation cell waiting for its predecessor to arrive first would wait forever.
 
-So a cell reports **becoming busy one cycle after it happens**, and becoming empty at once. A move is then always an OFF and, a cycle later, an ON, which is what this spec and [spec 001](001-neuromorphic-sensors.md) have described from the start.
+So a cell reports **becoming busy 20 ms after it happens**, and becoming empty at once. A move is then always an OFF and, twenty milliseconds later, an ON, which is what this spec and [spec 001](001-neuromorphic-sensors.md) have described from the start.
+
+Twenty because the correlation cells of [spec 010](010-cells.md) only accept a pair between 10 and 50 ms apart, and a delay that lands on either edge of that is a delay that works by luck. It also filters: an occupancy shorter than the lag is never reported at all, which silently swallows the chatter of a head trembling at a cell boundary while leaving every real crossing alone, none of which takes less than a tenth of a second.
 
 That is not the whole of it either. Cells that share their edges leave an object standing on one of them inside both at once, so the cell being reached reports before the cell being left and the lag does no more than cancel that head start out. The cells are half open — each takes its own edge and leaves the next one to its neighbour — so an object is never in two of them.
 
