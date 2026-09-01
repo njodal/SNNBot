@@ -39,6 +39,28 @@ Both inputs arrive in either case. What settles it is the order, which is what m
 
 The time window has a minimum and maximum value, so to discard spikes arriving at almost the same time or too far away. Ex: (10, 50) (in ms).
 
+#### The window is what the cell measures
+A pair of these tells one direction from the other, and that is all it tells while every cell of the layer carries the same window. What settles a direction is *which* input came first; what a window settles is *how long* the one waited for the other. Give different cells different windows and the layer stops reporting only where something went and starts reporting **how fast it got there**.
+
+Which is worth spelling out, because it is not where one would look for it. Speed is not in how far a thing jumps between one report and the next: an eye reports far too often for anything to skip past a cell unseen. In [Vehicle 1](005-vehicle-1.md) that would need nine thousand degrees a second, against the eighty its fastest effector can turn the head. Everything always moves from one cell to the one beside it, at every speed there is.
+
+Speed is in the interval instead — how long a thing takes to cross a cell, which for Vehicle 1 runs from about 112 ms when the head sweeps at its fastest to over two seconds when it barely creeps, a range of some twenty to one:
+
+| what moves the head | its speed | to cross one cell |
+|---------------------|-----------|-------------------|
+| the fastest effector | 80 °/s | 112 ms |
+| the slowest of the ladder | 8 °/s | 1125 ms |
+| the gentlest, made for going along with something | 4 °/s | 2250 ms |
+
+So a cell whose window is centred on 112 ms fires for a head sweeping at full speed and stays quiet for one that creeps, and a cell centred on a second does the opposite. A row of them, each with its own window, is a row of speeds.
+
+#### What it has to be wired to
+Not to the pair of eye cells a move goes between. Those two report the same instant — one goes empty exactly as the next goes busy — so the interval between them is zero, and whatever separates them is a delay somebody put there rather than anything about the movement. It reads the same at four degrees a second as at eighty.
+
+The interval that carries speed is the one from **one crossing to the next**, so the cell has to be wired to eye cells with a gap between them: a cell watching the third and the fifth measures how long the fourth took to cross. Cells two apart measure one cell's worth of transit, three apart two cells' worth, and so on.
+
+Which puts the layer's cells that never fire to work. Of the 72 pairs in [Version C](005-vehicle-1.md) only the 16 adjacent ones can ever occur, and the other 56 looked like a fully connected layer being wasteful. They are not: they are where speed is, and they were idle only because every cell was given the same window, and a window too short for any transit — the 10 to 50 ms that orders two simultaneous events is nowhere near the 112 ms to 2 s a movement takes.
+
 ### Coincidence Cell
 This cell have many inputs connections and fires if the mayority of the inputs arrives at the same time.
 
@@ -73,3 +95,5 @@ Inhibition sits awkwardly. The effector layer is supposed to inhibit its own cel
 - Does a cell need a membrane and a threshold? Nothing so far has wanted one, but nothing so far weighs more than two inputs.
 - Do cells have a refractory period, as the sensors of spec 001 do? Nothing stops one firing on consecutive cycles today.
 - Lateral inhibition: wiring between cells, or something the layer does to them?
+- Windows for speed are the size of the movements they measure, hundreds of milliseconds, while windows for order are tens. One kind of cell with a window that spans either, or two kinds?
+- A cell wired to eye cells three apart fires for the same speed as one wired two apart with a window half again as long. What tells them apart is what happens in between, which the cell never sees.
