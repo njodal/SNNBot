@@ -18,9 +18,9 @@ The neck closes on the eye.
 
 import math
 
-from .params import (CELL_ANGLE_DEG, CONTROL_TICK_MS, EYE_CELLS, HEAD_MAX_RATE_DEG_S,
-                     HEAD_COMFORT_DEG, KP, MAX_TURN_RATE, NECK_MAX_RATE_DEG_S,
-                     RECENTRE_KP)
+from .params import (CELL_ANGLE_DEG, CONTROL_TICK_MS, EYE_CELLS, EYE_CONTROL_MS,
+                     HEAD_MAX_RATE_DEG_S, HEAD_COMFORT_DEG, KP, MAX_TURN_RATE,
+                     NECK_CONTROL_MS, NECK_MAX_RATE_DEG_S, RECENTRE_KP)
 
 
 class ProportionalController:
@@ -87,8 +87,8 @@ class RecentringController(ProportionalController):
     """
 
     def __init__(self, kr=RECENTRE_KP, comfort=HEAD_COMFORT_DEG,
-                 max_rate=NECK_MAX_RATE_DEG_S, **kw):
-        super().__init__(max_rate=max_rate, **kw)
+                 max_rate=NECK_MAX_RATE_DEG_S, tick_ms=NECK_CONTROL_MS, **kw):
+        super().__init__(max_rate=max_rate, tick_ms=tick_ms, **kw)
         self.kr = kr
         self.comfort = comfort
 
@@ -107,11 +107,12 @@ class RecentringController(ProportionalController):
 class GazeController:
     """Version A of spec 006: one controller per joint, both reading the same eye.
 
-    Neither is told what the other is doing, and neither could be told usefully:
-    what they share is an error of gaze — the sum of the two angles — which is
-    nobody's angle in particular. What keeps them from fighting is that both
-    drive the sum the same way, and that the neck gives up first: inside its
-    dead zone it stops dead and leaves the rest to the eye.
+    They do not read the same thing and they do not decide as often. The eye
+    reads the retina every 10 ms, the neck reads the head joint's angle every
+    20, and both are slower than the body they drive can act — the head's
+    fastest effector emits every 2 ms. The neck's interval is a whole number of
+    the eye's on purpose: the two decide together, so the reflex below never has
+    a stale rate to cancel.
 
     Each of the three parts has one job. The eye decides where to look and is
     the only thing that sees. The neck decides how the looking is held and is
@@ -127,7 +128,7 @@ class GazeController:
 
     def __init__(self, eye=None, neck=None, vor=True):
         self.eye = eye if eye is not None else ProportionalController(
-            max_rate=HEAD_MAX_RATE_DEG_S)
+            max_rate=HEAD_MAX_RATE_DEG_S, tick_ms=EYE_CONTROL_MS)
         self.neck = neck if neck is not None else RecentringController()
         self.vor = vor
 

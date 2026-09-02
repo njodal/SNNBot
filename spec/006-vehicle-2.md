@@ -99,6 +99,48 @@ neck rate = Kr × how far the eye is outside its comfortable range
 
 So each of the three parts has one job. **The eye decides where to look, and is the only thing that sees. The neck decides how the looking is held, and is the only thing that reads the eye. The VOR, which is not a controller at all but a wire, keeps the second from disturbing the first.**
 
+### How often each of them decides
+
+Version A of spec 005 runs its controller **every tick**, so that it is never favoured over the spiking vehicle by being asked more often. Here the two loops are not asked equally, and neither is asked as often as its body could act:
+
+| | decides every | its fastest effector emits every |
+|---|---|---|
+| the eye | 10 ms | 2 ms |
+| the neck | 50 ms | 10 ms |
+
+Between turns a joint keeps going at whatever it was last told, so the interval is a real limit and not a detail. Spec 005 gives the rule it has to clear: a rate controller on a pure integrator starts to ring past `gain × interval = 1`. The eye sits at 0.02 and the neck at 0.02, both a long way under it.
+
+The eye cancels the rate the neck is *holding*, so on beats that do not line up it spends part of every neck interval cancelling a rate that has already changed. Making the neck's interval a whole number of the eye's avoids that exactly — and measuring it says the exactness is not worth much: over the handover, where the gaze is meant to stand perfectly still, the slip is 0.18 degrees at worst and zero for most intervals, whether they line up or not. The neck's rate changes so slowly that ten milliseconds of it being stale is nothing. The tidiness is worth keeping; the argument for it is not.
+
+Slowing the eye by ten and the neck by fifty costs nothing measurable — the object at the far edge of the eye is still caught in 980 ms, and the two joints still change places over the same five seconds — and it is slightly *better* at the task: 12.98 seconds in the middle cell against 12.37 over the experiment of spec 005.
+
+The neck can afford the longer interval because of what it is chasing. How far the eye sits off its middle changes slowly by construction, so a loop that reads it five times less often than the eye reads the retina sees very nearly the same thing. With the eye held at 10 ms throughout:
+
+| the neck decides every | catches in | eye / neck after 5 s | events while it stands | events while it follows | the experiment of spec 005 |
+|---|---|---|---|---|---|
+| 10 ms | 979 ms | 0.3° / 31.3° | 13 | 378 | 12.97 s |
+| 20 ms | 979 ms | 0.3° / 31.4° | 13 | 378 | 13.01 s |
+| **50 ms** | 980 ms | 0.3° / 31.4° | 9 | 378 | 12.98 s |
+| 100 ms | 980 ms | 0.3° / 31.4° | 9 | 378 | 12.90 s |
+| 200 ms | 979 ms | 0.2° / 31.3° | 9 | 374 | 12.98 s |
+
+Nothing moves. Which says the interval is not what settles the neck's behaviour — `Kr` is — and that fifty is a comfortable choice rather than a limit.
+
+### What the eye's interval does move
+
+The last two columns are the eye's doing and not the neck's, and one of them changes by a factor of three hundred when the eye's own interval is changed:
+
+| the eye decides every | events while it stands | events while it follows |
+|---|---|---|
+| 1 ms | 11 | **1** |
+| 10 ms | 13 | **378** |
+
+The vehicle behaves the same either way — it ends the run in the same posture with the object on the same cell. What differs is what the eye *says* while it does it, and the reason is a third number, the five milliseconds of [spec 005](005-vehicle-1.md) that a cell must be busy before it counts.
+
+Following something that slides, the error is quantised, so the vehicle can only track by trembling against the edge of a cell: the object drifts out, the error jumps a whole cell, the eye lunges, the object comes back, the error is zero again. What the control interval sets is how long each tremble lasts. At a millisecond the object is out of the middle cell 1168 times and never for longer than **1 ms**, so the settling time swallows every one of them and the eye reports nothing. At ten it is out 118 times, for as long as 13 ms, and 95 of those get through.
+
+So the three numbers — how often the controller decides, how wide a cell is, and how long a cell must be busy to count — are not independent, and this is the first vehicle in which two of them have been on opposite sides of the third. It costs Version A nothing, since it reads the cell as a number. It would not cost nothing in a version driven by the events themselves, which is every other one. Which is the chatter of spec 005 turning up again from the other side. A controller that decides a thousand times a second lunges at every crossing of a cell boundary and again on the way back; one that decides a hundred times a second lets a few of those pass, and the head trembles less for it.
+
 ### What the neck is not told, and why
 
 It was told, at first. The neck had a second law reading the same retina as the eye, deaf until the object was more than 20 degrees out and helping to swing the gaze past that. It worked. It is also what a human does, and the version of the threshold everybody quotes.

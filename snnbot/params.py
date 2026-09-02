@@ -131,6 +131,20 @@ HEAD_MAX_RATE_DEG_S = HEAD_EFFECTORS[0][0] * HEAD_DEG_PER_SPIKE   # 450 deg/s, a
 NECK_MAX_RATE_DEG_S = NECK_EFFECTORS[0][0] * NECK_DEG_PER_SPIKE   # 160 deg/s, a
                                   # human head turn at 100 to 200
 GAZE_RANGE_DEG = HEAD_RANGE_DEG + NECK_RANGE_DEG          # 125: the two add up
+EYE_CONTROL_MS = 10               # PROVISIONAL: how often each loop of Version A
+NECK_CONTROL_MS = 50              # decides again. Vehicle 1 has its controller act
+                                  # every tick, so that it is never favoured over
+                                  # the spiking vehicle by being asked more often.
+                                  # Here the two joints are not asked equally: the
+                                  # quick one re-plans five times as often as the
+                                  # slow one, and both are slower than their own
+                                  # bodies can act — the head's fastest effector
+                                  # emits every 2 ms and the neck's every 10. The
+                                  # neck can afford it because what it chases —
+                                  # how far the eye is off its middle — changes
+                                  # slowly by construction: at 200 ms it still
+                                  # behaves the same, so the number that matters
+                                  # is RECENTRE_KP and not this one.
 RECENTRE_KP = 1.0                 # PROVISIONAL: 1/s, so the eye is brought back
                                   # to the middle of its own range in about a
                                   # second — slower than the half second it takes

@@ -9,9 +9,9 @@ import random
 from snnbot.body.vehicle2 import LEFT, RIGHT, Vehicle2
 from snnbot.clock import Clock
 from snnbot.control import GazeController, ProportionalController, RecentringController
-from snnbot.params import (CONTRACTION_REST, HEAD_COMFORT_DEG, HEAD_MAX_RATE_DEG_S,
-                           HEAD_RANGE_DEG, NECK_MAX_RATE_DEG_S, NECK_RANGE_DEG,
-                           RECENTRE_KP)
+from snnbot.params import (CONTRACTION_REST, EYE_CONTROL_MS, HEAD_COMFORT_DEG,
+                           HEAD_MAX_RATE_DEG_S, HEAD_RANGE_DEG, KP, NECK_CONTROL_MS,
+                           NECK_MAX_RATE_DEG_S, NECK_RANGE_DEG, RECENTRE_KP)
 from snnbot.world import World
 
 FAR = 36.0         # cell 1, the far edge of the eye
@@ -161,3 +161,30 @@ def test_the_eye_reaches_the_far_cell_with_no_help_from_the_neck():
                           controller=controller(comfort=HEAD_RANGE_DEG))
     assert v.retina.busy_cell() == 5
     assert head[-1] > 25.0                      # the eye did the whole of it itself
+
+
+# --- how often each of them decides ------------------------------------------
+
+def test_the_eye_decides_five_times_as_often_as_the_neck():
+    c = GazeController()
+    assert (c.eye.tick_ms, c.neck.tick_ms) == (EYE_CONTROL_MS, NECK_CONTROL_MS)
+    assert c.neck.tick_ms > c.eye.tick_ms
+
+
+def test_each_holds_its_rate_until_its_own_next_turn():
+    """Between turns the joint keeps going at whatever it was last told."""
+    c = ProportionalController(tick_ms=EYE_CONTROL_MS)
+    rates = [c.update(t, 1 if t < 10 else 9) for t in range(0, 20)]
+    assert set(rates[:10]) == {c.kp * c.error(1)}       # the first decision, held
+    assert set(rates[10:]) == {c.kp * c.error(9)}       # and then the next one
+
+
+def test_the_neck_decides_on_the_eye_s_beat_so_the_vor_is_never_stale():
+    """The eye cancels the rate the neck is holding, so they must agree on when."""
+    assert NECK_CONTROL_MS % EYE_CONTROL_MS == 0
+
+
+def test_neither_loop_is_fast_enough_to_overshoot():
+    """Spec 005: past gain times interval of 1 a rate controller starts to ring."""
+    assert KP * EYE_CONTROL_MS / 1000 < 0.1
+    assert RECENTRE_KP * NECK_CONTROL_MS / 1000 < 0.1
