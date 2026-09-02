@@ -137,6 +137,19 @@ GAZE_RANGE_DEG = HEAD_RANGE_DEG + NECK_RANGE_DEG          # 125: the two add up
 # neck is the coarser joint throughout — step, level and babble alike — which is
 # the price of giving it twice the travel out of the same contraction range.
 
+# --- Version E, working out what is worth doing: spec 005 ---
+CRITIC_RATE = 0.2                 # PROVISIONAL: how fast the value of a cell moves
+VALUE_HALVES_IN_MS = 1000         # PROVISIONAL: how quickly what lies ahead is
+                                  # worth less than what is here. A real time and
+                                  # not a number of steps, since the delay that
+                                  # carries the old value is a real delay.
+ARRIVING_PAYS = 1.0               # SPEC 005: the middle cell going busy
+LEAVING_COSTS = 1.0               # SPEC 005: and going empty. The same, not more:
+                                  # what makes staying worth anything is that the
+                                  # leaving is discounted by how long it is put
+                                  # off, so a long visit nets more than a short
+                                  # one and a round trip on the spot nets nothing
+
 # --- the experiment: spec 005 ---
 OBJECT_START_DEG = 18.0           # where the object waits, left of straight ahead
 OBJECT_STILL_MS = 3000            # how long it stays there before moving

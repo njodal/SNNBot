@@ -307,7 +307,16 @@ Not by the time it holds the object, which has told the versions apart poorly. B
 
 That is a number this project has not had before — a claim about what the vehicle understood, not about how well it did. And it can be beaten: the written partition calls a move from cell 6 to cell 4 *neither*, the distance to the middle being one either way, when what actually happened is that the object crossed the middle. A vehicle that finds those worth something has found something the spec got wrong.
 
-### What is likely to go wrong
+### What happened
+It learns values and they are not the partition. Over eight seeds, taught four minutes each against a wandering object, the cells it comes to value agree with `outcome` **44% of the time**, which is what chance looks like, and the vehicle holds the object for 5.65 s against the 8.58 s of the version that is handed the partition.
+
+The reason is worth more than the result. The two cells it learns most strongly about are `(4,5)` and `(6,5)` — arriving at the middle from either side — and it learns them as **firmly bad**. That is not a mistake. A value in this scheme is what a state leads to, and arriving at the middle leads, reliably and soon, to leaving it, which costs. `outcome` means something else by good: it labels a move by where it came from. The test set up here compares the two, and they were never the same question.
+
+Underneath that is the reward being a moment and never a state, which was listed below as a risk and turns out to be the whole difficulty. An eye that reports only change cannot say *still there*, so being centred cannot pay; only arriving and leaving can. A long stay does net more than a short one, the leaving being discounted by how long it is put off, but the stays this vehicle manages are short against the discount and the leaving dominates.
+
+What would break the tie is not in this spec: **a cost for acting**. If every spike an effector emits were charged for, then sitting centred and quiet would be free while cycling in and out of the middle would not, which is the difference the reward cannot otherwise express — and it is a cost every real animal pays.
+
+### What was likely to go wrong
 
 - **The signal is rare.** Every transition used to carry one; now only arriving at the middle does, which at the outset happens almost never. That is what the value cell is for, and it may still not be enough.
 - **It can be farmed.** If arriving pays, then leaving in order to arrive again pays. Worse, a change-based eye cannot report *still there*, so the reward can only ever be a moment and never a state — the same asymmetry already listed as open for Version D, here with a shorter fuse. The blow for leaving must weigh at least what the arrival pays.

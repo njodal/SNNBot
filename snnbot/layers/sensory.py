@@ -16,7 +16,8 @@ import math
 from ..events import Event, ON, OFF
 from .cells import DelayBank
 from ..params import (BABBLE_EVERY_MS, CELL_ANGLE_DEG, CORRELATION_MAX_MS,
-                      CORRELATION_MIN_MS, DEG_PER_SPIKE, EFFECTORS, ORDER_DELAY_MS,
+                      ARRIVING_PAYS, CORRELATION_MIN_MS, CRITIC_RATE, DEG_PER_SPIKE,
+                      EFFECTORS, LEAVING_COSTS, ORDER_DELAY_MS, VALUE_HALVES_IN_MS,
                       ELIGIBILITY_MS, EXPLORE, EYE_CELLS, LEARNING_RATE,
                       STEERING, TICK_MS, WEIGHT_MAX)
 
@@ -229,6 +230,10 @@ class LearningReflex(CorrelationReflex):
                 w = self.weights[cell][action] + self.lr * reward * left
                 self.weights[cell][action] = max(-WEIGHT_MAX, min(WEIGHT_MAX, w))
 
+    def told(self, t, move, firing, eye):
+        """What it is told about the move it just saw. Handed to it, in this one."""
+        return outcome(move) if move is not None else 0
+
     def update(self, t, active_cell, eye, layers):
         move = self.moved(t, eye)
         firing = [move] if move is not None else []
@@ -236,8 +241,7 @@ class LearningReflex(CorrelationReflex):
             firing += [(c.pred, c.succ, c.tuned_to) for c in self.speed.update(t, eye)]
 
         if firing:
-            if move is not None:
-                self.reinforce(t, outcome(move))
+            self.reinforce(t, self.told(t, move, firing, eye))
             self.awake = self.choose(*firing)
             for cell in firing:
                 self._eligible[(cell, self.awake)] = t
@@ -327,3 +331,90 @@ class SpeedLayer:
                 if when is not None and cell.low <= t - when <= cell.high:
                     fired.append(cell)
         return fired
+
+
+class Critic:
+    """The three cells of Version E, which work out what is worth doing.
+
+    Nothing here keeps a value. What a correlation cell is worth is the weight of
+    its connection into the value cell, and the error cell fires the difference
+    between the value now and the value a moment ago, the second reaching it
+    through a delay and an inhibitory connection.
+
+    Its only innate knowledge is two wires from the middle cell of the eye: going
+    busy is *arrived*, going empty is *lost it*. Which of the 72 correlation
+    cells are the good ones is not among the things it is told.
+    """
+
+    def __init__(self, cells, middle, lr=CRITIC_RATE, halves_in_ms=VALUE_HALVES_IN_MS,
+                 arriving=ARRIVING_PAYS, leaving=LEAVING_COSTS):
+        self.value = {cell: 0.0 for cell in cells}      # weights into the value cell
+        self.middle, self.lr = middle, lr
+        self._halves, self._pays, self._costs = halves_in_ms, arriving, leaving
+        self._before = None                             # what the delay is carrying
+        self._owed = 0.0                                # reward not yet accounted for
+
+    def drive(self, eye):
+        """The reward cell: two wires from one cell of the eye, and nothing else."""
+        total = 0.0
+        for event in eye:
+            if event.address[0] != self.middle:
+                continue
+            total += self._pays if event.p is ON else -self._costs
+        return total
+
+    def worth(self, firing):
+        """The value cell: what the cells firing now add up to."""
+        return sum(self.value[cell] for cell in firing)
+
+    def sense(self, eye):
+        """The reward cell fires when it fires, whether or not anything else does.
+
+        Which has to be kept until there is a state to charge it to: arriving at
+        the middle is seen by the eye at once and by a correlation cell a delay
+        later, and a reward nobody is holding by then is a reward nobody learns
+        from.
+        """
+        self._owed += self.drive(eye)
+
+    def update(self, t, firing):
+        """The error cell: what just happened, less what was expected of it."""
+        now = self.worth(firing) if firing else None
+        if now is None:
+            return 0.0                                  # nothing to compare against
+
+        if self._before is None:
+            self._before = (t, firing, now)
+            return 0.0                                  # nor anything to charge to
+
+        reward, self._owed = self._owed, 0.0            # now there is
+
+        then_t, then_firing, then = self._before
+        discount = 0.5 ** ((t - then_t) / self._halves)
+        error = reward + discount * now - then
+        for cell in then_firing:                        # the value weights learn too
+            self.value[cell] += self.lr * error
+        self._before = (t, firing, now)
+        return error
+
+
+class ValueReflex(LearningReflex):
+    """Version E: nobody tells it which cells are the good ones.
+
+    Version D is handed `outcome`, a partition of the 72 worked out by whoever
+    wrote it down. This one is handed the middle cell of the eye and has to find
+    the rest for itself, through the critic above it.
+    """
+
+    def __init__(self, rng, cells=EYE_CELLS, **kw):
+        super().__init__(rng, cells=cells, **kw)
+        self.critic = Critic(list(self.weights), middle=(cells + 1) // 2)
+
+    def update(self, t, active_cell, eye, layers):
+        self.critic.sense(eye)          # the reward cell does not wait to be asked
+        return super().update(t, active_cell, eye, layers)
+
+    def told(self, t, move, firing, eye):
+        if not self.learning:
+            return 0
+        return self.critic.update(t, firing)
