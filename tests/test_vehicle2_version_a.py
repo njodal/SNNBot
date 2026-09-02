@@ -188,3 +188,13 @@ def test_neither_loop_is_fast_enough_to_overshoot():
     """Spec 005: past gain times interval of 1 a rate controller starts to ring."""
     assert KP * EYE_CONTROL_MS / 1000 < 0.1
     assert RECENTRE_KP * NECK_CONTROL_MS / 1000 < 0.1
+
+
+def test_a_wider_comfortable_range_moves_the_body_less():
+    """The eye is light and the neck carries it, so the eye should do the moving."""
+    travelled = {}
+    for comfort in (0.0, HEAD_COMFORT_DEG):
+        _, head, neck, _ = drive(controller=controller(comfort=comfort))
+        travelled[comfort] = sum(abs(b - a) for a, b in zip(head, head[1:]))
+        travelled[comfort] += sum(abs(b - a) for a, b in zip(neck, neck[1:]))
+    assert travelled[HEAD_COMFORT_DEG] < travelled[0.0]

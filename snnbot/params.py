@@ -105,7 +105,14 @@ WEIGHT_MAX = 1.0                  # PROVISIONAL: the strongest a connection gets
 # long. Everything else about the body is Vehicle 1's, twice over.
 HEAD_RANGE_DEG = 45.0             # SPEC 006: the joint the eye sits on. A human
                                   # eye turns +-45 to 50 in the orbit
-HEAD_COMFORT_DEG = 20.0           # SPEC 006: past this a human recruits the head
+HEAD_COMFORT_DEG = 20.0           # SPEC 006: past this a human recruits the head.
+                                  # The range the eye is left to hold on its own,
+                                  # and the reason it is not zero: the eye is a
+                                  # light thing and the neck carries all of it, so
+                                  # the eye should do the moving and the neck be
+                                  # spent only on what the eye cannot reach. Set
+                                  # to zero the vehicle travels two and a half
+                                  # times as far for the same result.
 NECK_RANGE_DEG = 80.0             # SPEC 006: human cervical rotation, +-70 to 80
 NECK_COMFORT_DEG = 45.0           # SPEC 006
 RECRUIT_NECK_DEG = HEAD_COMFORT_DEG   # PROVISIONAL: the gaze shift past which a
