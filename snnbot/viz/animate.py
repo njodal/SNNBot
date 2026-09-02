@@ -13,12 +13,12 @@ from PIL import Image, ImageDraw, ImageFont
 from ..body.vehicle1 import LEFT, RIGHT, Vehicle1
 from ..clock import Clock
 from ..control import ProportionalController
-from ..layers.sensory import CorrelationReflex, LearningReflex, Reflex
+from ..layers.sensory import CorrelationReflex, LearningReflex, Reflex, ValueReflex
 from ..events import ON
 from ..params import CELL_ANGLE_DEG, EYE_CELLS, TICK_MS
 from ..world import World, experiment_path, wandering
 
-W, H = 760, 640
+W, H = 760, 760
 CELL = 34
 EYE_L = (W - EYE_CELLS * CELL) // 2
 EYE_T, EYE_B = 250, 250 + CELL
@@ -39,7 +39,7 @@ def _font(sz):
     return ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial.ttf", sz)
 
 
-F, FS = _font(20), _font(15)
+F, FS, FT = _font(20), _font(15), _font(14)
 
 
 def _rot(p, deg):
@@ -67,8 +67,20 @@ def _zigzag(d, p0, p1, n=11, base=REST_LENGTH):
     d.line(pts, fill="black", width=3, joint="curve")
 
 
+NAMES = {"ProportionalController": "Version A: ground truth",
+         "Reflex": "Version B: reflex",
+         "CorrelationReflex": "Version C: correlation cells",
+         "LearningReflex": "Version D: what it learnt",
+         "ValueReflex": "Version E: what it worked out"}
+
+
+def _title(controller, reflex):
+    """Which vehicle this is, by what is driving it."""
+    return NAMES.get(type(controller or reflex).__name__, "motor babbling")
+
+
 def frame(t, head_deg, busy, object_deg, levels, raster, title="motor babbling",
-          note=None):
+          note=None, values=None):
     im = Image.new("RGB", (W, H), "white")
     d = ImageDraw.Draw(im)
     # A head turned to the left is a head whose left end has been pulled down, so
@@ -142,6 +154,18 @@ def frame(t, head_deg, busy, object_deg, levels, raster, title="motor babbling",
         else:
             d.line([(x, top), (x, bottom)], fill="black", width=2)
     d.text((RASTER_L, 630), f"the last {WINDOW_MS / 1000:g} s", fill="black", font=FS, anchor="lm")
+
+    if values:                      # the hump it worked out, cell by cell
+        base, high, wide = 730, 70, 44
+        most = max(max(values.values()), 0.01)
+        for cell, worth in sorted(values.items()):
+            x = RASTER_L + (cell - 1) * wide
+            tall = max(worth, 0) / most * high
+            d.rectangle([x, base - tall, x + wide - 10, base], fill="black")
+            d.text((x + (wide - 10) / 2, base + 14), str(cell), fill="black",
+                   font=FT, anchor="mm")
+        d.text((RASTER_L + 9 * wide + 16, base - high / 2),
+               "what it worked out\neach cell is worth", fill="black", font=FT, anchor="lm")
     return im
 
 
@@ -164,29 +188,25 @@ def animate(path="babbling.gif", seconds=8.0, seed=2, object_deg=18.0, every=80,
             levels = {s: vehicle.actuators[s].level for s in (LEFT, RIGHT)}
             frames.append(frame(t, vehicle.head_deg, vehicle.retina.busy_cell(),
                                 world.object_deg, levels, list(raster),
-                                "Version A: ground truth" if controller else
-                                ("Version D: what it learnt"
-                                 if type(reflex).__name__ == "LearningReflex"
-                                 else "Version C: correlation cells"
-                                 if type(reflex).__name__ == "CorrelationReflex"
-                                 else "Version B: reflex") if reflex else "motor babbling"))
+                                _title(controller, reflex),
+                                values=getattr(getattr(reflex, "critic", None), "value", None)))
     frames[0].save(path, save_all=True, append_images=frames[1:],
                    duration=every * TICK_MS, loop=0, optimize=True)
     return path, len(frames)
 
 
-def _taught(a):
-    """Version D, put through its schooling before anyone watches.
+def _taught(a, cls=LearningReflex):
+    """The vehicle that learns, put through its schooling before anyone watches.
 
     Against an object that wanders, and with the cells that read a speed: the
     two go together, either alone leaving it worse off than neither.
     """
     from ..body.vehicle1 import Vehicle1
     from ..clock import Clock
-    reflex = LearningReflex(random.Random(a.seed), speed=True)
+    reflex = cls(random.Random(a.seed), speed=True)
     world = World(object_deg=a.object, path=wandering(random.Random(a.seed + 7)))
     v = Vehicle1(world, rng=random.Random(a.seed), reflex=reflex)
-    for t in Clock().times(int(a.learn * 1000)):
+    for t in Clock().times(int((a.value or a.learn) * 1000)):
         world.update(t)
         v.step(t)
     reflex.learning, reflex.explore = False, 0.0
@@ -240,12 +260,15 @@ if __name__ == "__main__":
     p.add_argument("--correlation", action="store_true", help="Version C")
     p.add_argument("--learn", type=float, metavar="SECONDS",
                    help="Version D, taught for this long first")
+    p.add_argument("--value", type=float, metavar="SECONDS",
+                   help="Version E, taught for this long first")
     p.add_argument("--every", type=int, default=80, help="ticks between frames")
     p.add_argument("--moving", action="store_true", help="the object slides left")
     a = p.parse_args()
     path, n = animate(a.out, a.seconds, a.seed, a.object, a.every,
                       controller=ProportionalController() if a.pid else None,
-                      moving=a.moving, reflex=_taught(a) if a.learn else
+                      moving=a.moving, reflex=_taught(a, ValueReflex) if a.value else
+                             _taught(a) if a.learn else
                              Reflex() if a.reflex else
                              CorrelationReflex() if a.correlation else None)
     print(f"{n} frames -> {path}")

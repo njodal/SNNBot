@@ -329,6 +329,10 @@ cell     1     2     3     4     5     6     7     8     9
 value  0.04  0.14  0.70  0.93  0.61  1.04  0.66  0.27  0.10
 ```
 
+![Version E, with the hump it worked out](../docs/images/version_e.gif)
+
+The bars along the bottom are that hump, and they are the whole of what this version has that the others do not: a vehicle that has worked out, from two wires, where it wants things to be.
+
 Which is the vehicle saying, unprompted, that the middle of its eye is where it wants things to be. And the partition falls out of it as a difference — `V(where it went) − V(where it came from)` — which is what a partition of moves was all along.
 
 #### And it could not be paid for staying

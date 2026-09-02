@@ -6,7 +6,7 @@ import random
 from .body.vehicle1 import Vehicle1
 from .body.vehicle2 import Vehicle2
 from .clock import Clock
-from .control import GazeController, ProportionalController, RecentringController
+from .control import GazeController, ProportionalController
 from .layers.sensory import CorrelationReflex, LearningReflex, Reflex
 
 from .recorder import Recorder
@@ -33,12 +33,9 @@ def main():
     p.add_argument("--seed", type=int, default=1)
     p.add_argument("--object", type=float, default=18.0, help="degrees left of ahead")
     p.add_argument("--pid", action="store_true", help="run Version A, the ground truth")
-    p.add_argument("--recentre", action="store_true",
-                   help="and give it the second loop: the neck takes over what the eye "
-                        "is holding, so the eye comes back to the middle of its range")
     p.add_argument("--neck", action="store_true",
-                   help="run Version A of Vehicle 2: a PID per joint, the neck's deaf "
-                        "until the object is further out than the eye alone would go")
+                   help="run Version A of Vehicle 2: a PID per joint — the eye on what "
+                        "it sees, the neck on where the eye is sitting")
     p.add_argument("--reflex", action="store_true", help="run Version B, the reflex")
     p.add_argument("--correlation", action="store_true",
                    help="run Version C, the reflex on a neuromorphic eye")
@@ -48,10 +45,8 @@ def main():
                    help="the object waits a second, then slides left for another")
     args = p.parse_args()
 
-    two_joints = args.neck or args.recentre
-    vehicle_cls = Vehicle2 if two_joints else Vehicle1
-    controller = (GazeController(neck=RecentringController() if args.recentre else None)
-                  if two_joints
+    vehicle_cls = Vehicle2 if args.neck else Vehicle1
+    controller = (GazeController() if args.neck
                   else ProportionalController() if args.pid else None)
     reflex = Reflex() if args.reflex else CorrelationReflex() if args.correlation else None
     if args.learn:
@@ -65,8 +60,7 @@ def main():
     path = experiment_path(args.object) if args.moving else None
     vehicle, rec = run(args.seconds, args.seed, args.object, controller=controller,
                        path=path, reflex=reflex, vehicle_cls=vehicle_cls)
-    what = ('a PID on each joint, and the eye giving its range back' if args.recentre
-            else 'a PID on each joint' if args.neck
+    what = ('a PID on each joint' if args.neck
             else 'the ground truth' if args.pid else 'the reflex' if args.reflex
             else 'what it learnt' if args.learn
             else 'the correlation cells' if args.correlation else 'babbling')
@@ -75,7 +69,7 @@ def main():
     for source, n in sorted(rec.counts().items()):
         print(f"  {n:6d}  {source}")
     ended = f"head ended at {vehicle.head_deg:+.1f} degrees"
-    if two_joints:
+    if args.neck:
         ended += (f", neck at {vehicle.neck_deg:+.1f}, "
                   f"gaze at {vehicle.gaze_deg:+.1f}")
     print(f"\n  {ended}, object seen by cell {vehicle.retina.busy_cell()}")
