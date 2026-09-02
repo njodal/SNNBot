@@ -44,13 +44,15 @@ What the eye transmits is *not* those two pictures: it is only the two events at
 
 ## Example II: contraction sensor
 
-Suppose the state of a muscle goes from 0 (no contraction) to 100 (fully contracted). Ten threshold based sensors are packed in an array, each one covering a tenth of that span: sensor 1 fires between 0 and 10, sensor 2 between 11 and 20, sensor 3 between 21 and 30, and so on up to sensor 10 between 91 and 100.
+Suppose the state of a muscle goes from 0 (no contraction) to 100 (fully contracted). Ten threshold based sensors are packed in an array, each one covering a tenth of that span: sensor 1 fires from 0 up to 10, sensor 2 from 10 up to 20, sensor 3 from 20 up to 30, and so on up to sensor 10, which runs from 90 to 100 and keeps its upper edge, nothing being above it.
 
-The ranges do not overlap and together they cover the whole span, so exactly one sensor is firing at any moment. Which one it is *is* the reading:
+Each range takes its lower edge and leaves the upper one to the next, the way the cells of the eye are tiled — so the ranges do not overlap, together they cover the whole span, and exactly one sensor is firing at any moment. Which one it is *is* the reading:
 
 ![Sensor 3 firing](../docs/images/grid_1x10_c3.png)
 
-Here the muscle is contracted somewhere between 21 and 30.
+Here the muscle is contracted somewhere between 20 and 30.
+
+Edges are worth this much care because a level between two ranges is a level nothing reports. Whole numbered edges a unit apart — 0 to 10, then 11 to 20 — read every whole number and leave a tenth of the span unread, which stays invisible for as long as every actuator moves in whole steps. It cost [Vehicle 2](006-vehicle-2.md) the propioception of a head sitting exactly where it had been steered to sit.
 
 Unlike the eye, this array says nothing by the transitions alone: it keeps firing for as long as the muscle stays where it is, and a contraction that does not move is still being reported. What the array gives the network is a position along a line, encoded as which of ten inputs is active — the same thing a black cell means in the picture above, except that here black means *this sensor is firing now*, not *this cell is occupied*.
 
