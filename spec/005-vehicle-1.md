@@ -314,7 +314,41 @@ The reason is worth more than the result. The two cells it learns most strongly 
 
 Underneath that is the reward being a moment and never a state, which was listed below as a risk and turns out to be the whole difficulty. An eye that reports only change cannot say *still there*, so being centred cannot pay; only arriving and leaving can. A long stay does net more than a short one, the leaving being discounted by how long it is put off, but the stays this vehicle manages are short against the discount and the leaving dominates.
 
-What would break the tie is not in this spec: **a cost for acting**. If every spike an effector emits were charged for, then sitting centred and quiet would be free while cycling in and out of the middle would not, which is the difference the reward cannot otherwise express — and it is a cost every real animal pays.
+What would break the tie is **a cost for acting**. Sitting centred and quiet would be free while cycling in and out of the middle would not, which is the difference the reward cannot otherwise express, and it is a cost every real animal pays.
+
+### Paying for what it does
+It needs no new machinery, only one more wire. The spikes an effector emits already exist and each one *is* an action, so they reach the reward cell that is already there, inhibitorily and with a small weight. Acting costs; keeping still is free; and the difference arrives by the same route the reward does.
+
+How small a weight can be argued rather than guessed, since it is caught between two demands.
+
+**It has to make cycling not worth it.** A trip out of the middle and back earns `1 − discount ^ time away`, which with the value halving in a second and a tenth of a second away is **0.067**.
+
+**It must not make catching the object not worth it.** Bringing one in from cell 3 is 13.5 degrees, some **17 spikes**, and pays 1. So a spike must cost well under `1 / 17`, about 0.06.
+
+Between them, something near **0.01** a spike: a cycle of twenty-odd spikes would cost 0.22 against the 0.067 it earns, and a catch would cost 0.17 against the 1 it pays.
+
+And it buys something beyond that. A fast effector emits ten times the spikes of a slow one over the same stretch, so it costs ten times as much, and the vehicle would have a reason to reach for the gentlest one that will do. That is exactly the ladder this spec wires by hand — fastest effector for the outermost cell, the gentle fifth for going along with something already in the middle. Under a cost for acting it stops being dictated and becomes something to be found.
+
+**The window is narrower than it looks.** Twenty-odd spikes for a cycle assumes the object has to cross half a cell to get out. It does not: an object resting on the very edge of the middle cell can be pushed out and back for a couple of spikes, and then the cost would have to beat `0.067 / 2`, which is 0.035 and already against the ceiling of 0.06. The cheapest way to farm the reward is the one a cost punishes least, so this probably wants hysteresis in the eye as well — the OFF asking that the object has really gone rather than barely gone, which is the cure this spec has been putting off since Version A.
+
+Two more ways it could go wrong. It might simply learn to do nothing, which is what happens when acting is dear. And it makes babbling expensive, spending spikes for no reward — which is either the mechanism [spec 002](002-vehicles.md) wants, babbling fading of its own accord as a vehicle learns, or the death of exploration. In this implementation babbling is not under the weights at all: the reflex fires a random effector when nothing else is running, so a cost would not reach it.
+
+#### There is no window
+It was built and priced across the range the arithmetic allowed, and every price made the vehicle worse:
+
+| a spike costs | holds the object | effector spikes |
+|---------------|------------------|-----------------|
+| nothing | 6.04 s | 396 |
+| 0.003 | 5.42 s | 366 |
+| 0.010 | 5.07 s | 239 |
+| 0.035 | 3.68 s | 227 |
+| 0.100 | 2.28 s | 302 |
+
+It does what a charge for acting does — the vehicle acts less, the spikes falling by nearly half at a hundredth apiece — and none of that turns into holding the object any longer. The first failure listed above, learning to do nothing, arrives at the cheapest price tried and does not wait for a dear one.
+
+The arithmetic was not wrong; it was answering about a different vehicle. Balancing what a catch pays against what a cycle earns assumes a vehicle that catches things, and this one rarely does. The reward is scarce and the cost is paid on every spike, so the ledger is nearly all outgoings whatever the price. Charging for effort before there is any competence to spend it on is charging a beginner.
+
+Which leaves the wire in place and the price at nothing. It is the right idea for a vehicle that can already do the task and is doing it wastefully, and this is not yet that vehicle.
 
 ### What was likely to go wrong
 

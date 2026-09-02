@@ -143,6 +143,13 @@ VALUE_HALVES_IN_MS = 1000         # PROVISIONAL: how quickly what lies ahead is
                                   # worth less than what is here. A real time and
                                   # not a number of steps, since the delay that
                                   # carries the old value is a real delay.
+ACTING_COSTS = 0.0                # SPEC 005: what one effector spike costs, and
+                                  # nothing is what it costs. The arithmetic said
+                                  # there was a window between 0.003 and 0.06;
+                                  # measuring found none — every price tried made
+                                  # the vehicle worse, for the reason written up
+                                  # there. Kept, so that it can be charged again
+                                  # once there is a vehicle able to earn.
 ARRIVING_PAYS = 1.0               # SPEC 005: the middle cell going busy
 LEAVING_COSTS = 1.0               # SPEC 005: and going empty. The same, not more:
                                   # what makes staying worth anything is that the

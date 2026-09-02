@@ -55,3 +55,22 @@ def test_it_learns_values_from_the_middle_cell_alone():
         world.update(t)
         v.step(t)
     assert any(r.critic.value.values()), "nothing came to be worth anything"
+
+
+def test_acting_can_be_charged_for():
+    """One more wire into the reward cell, from the effectors that already spike."""
+    c = critic()
+    c.charge(10)
+    assert c._owed == 0                          # nothing is what it costs today
+
+    c = Critic(list(((3, 4),)), middle=5, acting=0.01)
+    c.charge(10)
+    assert c._owed == -0.1
+
+
+def test_a_reflex_that_does_not_pay_is_told_all_the_same():
+    """Every reflex hears what its effectors fired; only one of them cares."""
+    from snnbot.layers.sensory import CorrelationReflex, Reflex
+
+    for reflex in (Reflex(), CorrelationReflex()):
+        reflex.spent(5)                          # and says nothing about it

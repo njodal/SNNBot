@@ -16,7 +16,8 @@ import math
 from ..events import Event, ON, OFF
 from .cells import DelayBank
 from ..params import (BABBLE_EVERY_MS, CELL_ANGLE_DEG, CORRELATION_MAX_MS,
-                      ARRIVING_PAYS, CORRELATION_MIN_MS, CRITIC_RATE, DEG_PER_SPIKE,
+                      ACTING_COSTS, ARRIVING_PAYS, CORRELATION_MIN_MS, CRITIC_RATE,
+                      DEG_PER_SPIKE,
                       EFFECTORS, LEAVING_COSTS, ORDER_DELAY_MS, VALUE_HALVES_IN_MS,
                       ELIGIBILITY_MS, EXPLORE, EYE_CELLS, LEARNING_RATE,
                       STEERING, TICK_MS, WEIGHT_MAX)
@@ -38,6 +39,9 @@ def wiring(cells=EYE_CELLS, effectors=len(STEERING)):
 
 class Reflex:
     """Sensory layer and effector layer, hard wired to each other."""
+
+    def spent(self, spikes):
+        """Told what its effectors just fired. Only a vehicle that pays cares."""
 
     def __init__(self, wiring=None):
         self.wiring = wiring if wiring is not None else globals()["wiring"]()
@@ -117,6 +121,9 @@ class CorrelationReflex:
     def cells(self):
         """The pairs there is a cell for: 9 successors by 8 predecessors."""
         return list(self.wiring)
+
+    def spent(self, spikes):
+        """Told what its effectors just fired. Only a vehicle that pays cares."""
 
     def moved(self, t, eye):
         """Which pair, if any, just fired. The successor is what arrives last."""
@@ -347,10 +354,11 @@ class Critic:
     """
 
     def __init__(self, cells, middle, lr=CRITIC_RATE, halves_in_ms=VALUE_HALVES_IN_MS,
-                 arriving=ARRIVING_PAYS, leaving=LEAVING_COSTS):
+                 arriving=ARRIVING_PAYS, leaving=LEAVING_COSTS, acting=ACTING_COSTS):
         self.value = {cell: 0.0 for cell in cells}      # weights into the value cell
         self.middle, self.lr = middle, lr
         self._halves, self._pays, self._costs = halves_in_ms, arriving, leaving
+        self._acting = acting
         self._before = None                             # what the delay is carrying
         self._owed = 0.0                                # reward not yet accounted for
 
@@ -366,6 +374,15 @@ class Critic:
     def worth(self, firing):
         """The value cell: what the cells firing now add up to."""
         return sum(self.value[cell] for cell in firing)
+
+    def charge(self, spikes):
+        """What it costs to have acted: the effectors reach the reward cell too.
+
+        Nothing else tells being centred and quiet apart from cycling in and out
+        of the middle, an eye that reports only change being unable to say that
+        anything is still where it was.
+        """
+        self._owed -= spikes * self._acting
 
     def sense(self, eye):
         """The reward cell fires when it fires, whether or not anything else does.
@@ -413,6 +430,10 @@ class ValueReflex(LearningReflex):
     def update(self, t, active_cell, eye, layers):
         self.critic.sense(eye)          # the reward cell does not wait to be asked
         return super().update(t, active_cell, eye, layers)
+
+    def spent(self, spikes):
+        if self.learning:
+            self.critic.charge(spikes)
 
     def told(self, t, move, firing, eye):
         if not self.learning:

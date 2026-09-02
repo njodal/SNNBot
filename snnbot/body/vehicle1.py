@@ -80,6 +80,9 @@ class Vehicle1:
                 self.actuators[side].on_spike(t)
                 self.actuators[other].stretched_by(STEP)
 
+        if self.reflex is not None:
+            self.reflex.spent(sum(len(s) for k, s in fired.items()
+                                  if k.startswith("effector")))
         return self._sense(t, fired)
 
     def _sense(self, t, fired):
