@@ -20,3 +20,4 @@ Design specifications for SNNBot.
 | 005 | [Vehicle 1](005-vehicle-1.md)                                | draft  |
 | 006 | [Vehicle 2](006-vehicle-2.md)                                | draft  |
 | 010 | [Cells](010-cells.md)                                        | draft  |
+| 011 | [A P controller out of cells](011-p-controller.md)          | draft  |
