@@ -87,6 +87,11 @@ A retina reporting the ON of a cell later than the OFF is a sensor shading when 
 
 So the eye keeps a **settling time**, and it is a different thing from a lag: a cell says a thing has arrived once it has been there a moment, and says nothing about one that came and went inside that moment. Five milliseconds is enough to lose the trembling and keep every real crossing, which take a hundred and more. That is not a sensor lying about when — it is one that needs a moment to be sure, which every real one does. The order is still made downstream, by the delay cell, out of two events the eye reports together.
 
+### Memory Cell
+Set by one input, cleared by another, and firing all the while between. The counterpart of the delay cell: that one remembers *when* something happened, this one remembers *that* it did and has not been undone.
+
+Its output is the only tonic thing in a project made of changes, and that is what it is for. An eye that reports only what altered can say a thing arrived and can say it left, but never that it is still where it was — and anything that has to be told a state of affairs holds, rather than that it began, has nowhere else to get it. The critic of [Version E](005-vehicle-1.md) is the first to need one: without it, arriving somewhere good was only ever the prelude to leaving, and every place the vehicle could be came out worthless.
+
 ### Coincidence Cell
 This cell have many inputs connections and fires if the mayority of the inputs arrives at the same time.
 

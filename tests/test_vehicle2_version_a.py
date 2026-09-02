@@ -4,10 +4,11 @@ import random
 
 from snnbot.body.vehicle2 import LEFT, RIGHT, Vehicle2
 from snnbot.clock import Clock
-from snnbot.control import DeadZoneController, GazeController, ProportionalController
+from snnbot.control import (DeadZoneController, GazeController,
+                            ProportionalController, RecentringController)
 from snnbot.params import (CELL_ANGLE_DEG, CONTRACTION_REST, HEAD_MAX_RATE_DEG_S,
                            HEAD_RANGE_DEG, NECK_MAX_RATE_DEG_S, NECK_RANGE_DEG,
-                           RECRUIT_NECK_DEG)
+                           RECENTRE_KP, RECRUIT_NECK_DEG)
 from snnbot.world import World
 
 NEAR = 18.0        # cell 3: inside the threshold, the eye's business alone
@@ -127,3 +128,57 @@ def test_the_neck_rate_is_capped():
     c = DeadZoneController(kp=1000)
     assert c.update(0, 1) == NECK_MAX_RATE_DEG_S
     assert c.update(1000, 9) == -NECK_MAX_RATE_DEG_S
+
+
+# --- the second loop: giving the eye its range back -------------------------
+
+def recentring(vor=True):
+    return GazeController(neck=RecentringController(), vor=vor)
+
+
+def test_the_neck_takes_over_what_the_eye_was_holding():
+    v, head, neck, _ = drive(seconds=5.0, controller=recentring())
+    assert abs(head[-1]) < 2.0                  # the eye is back near its middle
+    assert abs(neck[-1] - v.gaze_deg) < 2.0     # and the neck is holding the gaze
+
+
+def test_without_it_the_eye_stays_where_it_landed():
+    _, head, _, _ = drive(seconds=5.0)
+    assert head[-1] > 25.0
+
+
+def test_the_gaze_does_not_move_while_the_neck_takes_over():
+    """The whole point: the object must not notice its keeper changing."""
+    v, _, _, _ = drive(seconds=5.0, controller=recentring())
+    assert v.retina.busy_cell() == 5
+
+
+def test_the_eye_is_told_what_the_neck_is_doing():
+    """Without the VOR the eye only finds out once the object has left the cell."""
+    kept = drive(seconds=5.0, controller=recentring())[3]
+    adrift = drive(seconds=5.0, controller=recentring(vor=False))[3]
+    fired = [sum(len(f.get("retina", ())) for f in run) for run in (kept, adrift)]
+    assert fired[0] < fired[1] / 10             # nine events against a few hundred
+
+
+def test_the_vor_cancels_the_re_centring_and_not_the_recruiting():
+    """Cancelling the recruiting too would make recruiting the neck pointless."""
+    alone = ProportionalController(max_rate=HEAD_MAX_RATE_DEG_S).update(0, 1)
+    recruited = GazeController(neck=DeadZoneController()).update(0, 1)[0]
+    assert recruited == alone                   # nothing taken off during the shift
+    giving_back = recentring().update(0, 5, 10.0)
+    assert giving_back == (-RECENTRE_KP * 10.0, RECENTRE_KP * 10.0)
+
+
+def test_the_second_loop_reads_the_head_and_nothing_else():
+    c = RecentringController()
+    assert c.rate(5, 10.0) == RECENTRE_KP * 10.0    # centred eye, head off centre
+    assert c.rate(5, 0.0) == 0.0
+    assert c.rate(None, 20.0) == 0.0                # nothing in sight, nothing to hold
+
+
+def test_the_head_stays_within_its_range_while_giving_it_back():
+    _, head, neck, _ = drive(object_deg=165.0, head_deg=HEAD_RANGE_DEG,
+                             neck_deg=NECK_RANGE_DEG, controller=recentring())
+    assert max(head) <= HEAD_RANGE_DEG + 1e-9
+    assert max(neck) <= NECK_RANGE_DEG + 1e-9

@@ -14,9 +14,10 @@ nowhere to go from there.
 import math
 
 from ..events import Event, ON, OFF
-from .cells import DelayBank
+from .cells import DelayBank, MemoryCell
 from ..params import (BABBLE_EVERY_MS, CELL_ANGLE_DEG, CORRELATION_MAX_MS,
-                      ACTING_COSTS, ARRIVING_PAYS, CORRELATION_MIN_MS, CRITIC_RATE,
+                      ACTING_COSTS, ARRIVING_PAYS, CENTRED_PAYS, CORRELATION_MIN_MS,
+                      CRITIC_RATE, MEMORY_RATE_HZ,
                       DEG_PER_SPIKE,
                       EFFECTORS, LEAVING_COSTS, ORDER_DELAY_MS, VALUE_HALVES_IN_MS,
                       ELIGIBILITY_MS, EXPLORE, EYE_CELLS, LEARNING_RATE,
@@ -353,12 +354,18 @@ class Critic:
     cells are the good ones is not among the things it is told.
     """
 
-    def __init__(self, cells, middle, lr=CRITIC_RATE, halves_in_ms=VALUE_HALVES_IN_MS,
-                 arriving=ARRIVING_PAYS, leaving=LEAVING_COSTS, acting=ACTING_COSTS):
-        self.value = {cell: 0.0 for cell in cells}      # weights into the value cell
+    def __init__(self, places, middle, lr=CRITIC_RATE, halves_in_ms=VALUE_HALVES_IN_MS,
+                 arriving=ARRIVING_PAYS, leaving=LEAVING_COSTS, acting=ACTING_COSTS,
+                 centred=CENTRED_PAYS, memory_hz=MEMORY_RATE_HZ):
+        self.value = {place: 0.0 for place in places}   # weights into the value cell
         self.middle, self.lr = middle, lr
         self._halves, self._pays, self._costs = halves_in_ms, arriving, leaving
-        self._acting = acting
+        self._acting, self._centred = acting, centred
+        # The one tonic thing in a vehicle made of changes: an eye that reports
+        # only what altered cannot say the object is still in the middle, and
+        # without that, being centred cannot be worth anything — only arriving
+        # and leaving can, and arriving leads to leaving.
+        self.still_centred = MemoryCell(memory_hz)
         self._before = None                             # what the delay is carrying
         self._owed = 0.0                                # reward not yet accounted for
 
@@ -372,8 +379,14 @@ class Critic:
         return total
 
     def worth(self, firing):
-        """The value cell: what the cells firing now add up to."""
-        return sum(self.value[cell] for cell in firing)
+        """The value cell: what where the object is now is worth.
+
+        Where, and not how it got there. A value is what a state leads to, and
+        a correlation cell is not a state but a move — every cell that fires at
+        one moment names the same place, having come to it from different ones,
+        and it is that place they are all asking about.
+        """
+        return self.value[firing[0][1]]
 
     def charge(self, spikes):
         """What it costs to have acted: the effectors reach the reward cell too.
@@ -384,7 +397,7 @@ class Critic:
         """
         self._owed -= spikes * self._acting
 
-    def sense(self, eye):
+    def sense(self, t, eye):
         """The reward cell fires when it fires, whether or not anything else does.
 
         Which has to be kept until there is a state to charge it to: arriving at
@@ -393,6 +406,11 @@ class Critic:
         from.
         """
         self._owed += self.drive(eye)
+        at_middle = [e for e in eye if e.address[0] == self.middle]
+        if self.still_centred.update(t,
+                                     set_it=any(e.p is ON for e in at_middle),
+                                     clear_it=any(e.p is OFF for e in at_middle)):
+            self._owed += self._centred
 
     def update(self, t, firing):
         """The error cell: what just happened, less what was expected of it."""
@@ -409,8 +427,7 @@ class Critic:
         then_t, then_firing, then = self._before
         discount = 0.5 ** ((t - then_t) / self._halves)
         error = reward + discount * now - then
-        for cell in then_firing:                        # the value weights learn too
-            self.value[cell] += self.lr * error
+        self.value[then_firing[0][1]] += self.lr * error  # the value weight learns too
         self._before = (t, firing, now)
         return error
 
@@ -425,10 +442,20 @@ class ValueReflex(LearningReflex):
 
     def __init__(self, rng, cells=EYE_CELLS, **kw):
         super().__init__(rng, cells=cells, **kw)
-        self.critic = Critic(list(self.weights), middle=(cells + 1) // 2)
+        self.critic = Critic(range(1, cells + 1), middle=(cells + 1) // 2)
+
+    def partition(self):
+        """What it has come to think of each move, against what spec 010 says.
+
+        A value says what a place is worth; the partition asks about a move. One
+        is the difference of the other, so the two can be compared at all only
+        through `V(where it went) - V(where it came from)`.
+        """
+        return {(i, j): self.critic.value[j] - self.critic.value[i]
+                for i in self.critic.value for j in self.critic.value if i != j}
 
     def update(self, t, active_cell, eye, layers):
-        self.critic.sense(eye)          # the reward cell does not wait to be asked
+        self.critic.sense(t, eye)       # the reward cell does not wait to be asked
         return super().update(t, active_cell, eye, layers)
 
     def spent(self, spikes):

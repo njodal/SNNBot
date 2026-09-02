@@ -110,7 +110,8 @@ class Vehicle2:
         if self.controller is not None:
             # Version A: the controller reads the active cell as a number and
             # turns both joints itself. No effector fires, no spike is involved.
-            head_rate, neck_rate = self.controller.update(t, self.retina.busy_cell())
+            head_rate, neck_rate = self.controller.update(
+                t, self.retina.busy_cell(), self.head_deg)
             self.head.turn(t, head_rate * elapsed / 1000)
             self.neck.turn(t, neck_rate * elapsed / 1000)
             return self._sense(t, fired)

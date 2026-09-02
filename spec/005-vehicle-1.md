@@ -308,13 +308,33 @@ Not by the time it holds the object, which has told the versions apart poorly. B
 That is a number this project has not had before — a claim about what the vehicle understood, not about how well it did. And it can be beaten: the written partition calls a move from cell 6 to cell 4 *neither*, the distance to the middle being one either way, when what actually happened is that the object crossed the middle. A vehicle that finds those worth something has found something the spec got wrong.
 
 ### What happened
-It learns values and they are not the partition. Over eight seeds, taught four minutes each against a wandering object, the cells it comes to value agree with `outcome` **44% of the time**, which is what chance looks like, and the vehicle holds the object for 5.65 s against the 8.58 s of the version that is handed the partition.
+It works, and getting there took correcting two things about the critic rather than anything about the vehicle. Over eight seeds, taught four minutes each:
 
-The reason is worth more than the result. The two cells it learns most strongly about are `(4,5)` and `(6,5)` — arriving at the middle from either side — and it learns them as **firmly bad**. That is not a mistake. A value in this scheme is what a state leads to, and arriving at the middle leads, reliably and soon, to leaving it, which costs. `outcome` means something else by good: it labels a move by where it came from. The test set up here compares the two, and they were never the same question.
+| | holds the object | agrees with the partition |
+|---|---|---|
+| Version D, handed the partition | 8.58 s | — |
+| **Version E, finding it** | **8.04 s** | **89%**, from 87 to 97 |
 
-Underneath that is the reward being a moment and never a state, which was listed below as a risk and turns out to be the whole difficulty. An eye that reports only change cannot say *still there*, so being centred cannot pay; only arriving and leaving can. A long stay does net more than a short one, the leaving being discounted by how long it is put off, but the stays this vehicle manages are short against the discount and the leaving dominates.
+The same as the version that is told, within a spread far wider than the difference, and it rediscovers between seven and eight of every eight moves that spec 010 labels — from two wires out of one cell of the eye, having been told nothing about what any move means.
 
-What would break the tie is **a cost for acting**. Sitting centred and quiet would be free while cycling in and out of the middle would not, which is the difference the reward cannot otherwise express, and it is a cost every real animal pays.
+#### It valued the wrong thing
+The first attempt agreed with the partition 44% of the time, which is chance, and the cells it learnt most strongly about were arriving at the middle from either side, learnt as firmly bad.
+
+That was not a fault in the learning. A value is what a state leads to, and the critic had been given correlation cells to value — but a correlation cell is not a state, it is a **move**. Asking what a move is worth and then comparing the answer to a partition of moves looks like the same question twice and is not: the partition says which way a move went, a value says what came after it.
+
+Values belong to **places**. Every cell firing at one moment names the same place, having reached it from different ones, and it is that place they are all asking about. Valuing the place instead, the vehicle learns a hump:
+
+```
+cell     1     2     3     4     5     6     7     8     9
+value  0.04  0.14  0.70  0.93  0.61  1.04  0.66  0.27  0.10
+```
+
+Which is the vehicle saying, unprompted, that the middle of its eye is where it wants things to be. And the partition falls out of it as a difference — `V(where it went) − V(where it came from)` — which is what a partition of moves was all along.
+
+#### And it could not be paid for staying
+Before that, every value it learnt was negative, whatever the place. Arriving at the middle is followed, reliably and soon, by leaving it, and with a reward that can only be a moment there is nothing on the other side of the ledger. An eye reporting only change cannot say *still there*.
+
+So the drive got a **memory cell** — set when the middle cell goes busy, cleared when it goes empty, and firing all the while between, which [spec 010](010-cells.md) now carries as a kind of its own. It is the one tonic thing in a vehicle made of changes, and it is what lets being centred be worth something rather than only arriving there. In four minutes of schooling the vehicle spends about 42% of its time centred, so what that cell pays for is most of what it ever earns.
 
 ### Paying for what it does
 It needs no new machinery, only one more wire. The spikes an effector emits already exist and each one *is* an action, so they reach the reward cell that is already there, inhibitorily and with a small weight. Acting costs; keeping still is free; and the difference arrives by the same route the reward does.
@@ -334,7 +354,7 @@ And it buys something beyond that. A fast effector emits ten times the spikes of
 Two more ways it could go wrong. It might simply learn to do nothing, which is what happens when acting is dear. And it makes babbling expensive, spending spikes for no reward — which is either the mechanism [spec 002](002-vehicles.md) wants, babbling fading of its own accord as a vehicle learns, or the death of exploration. In this implementation babbling is not under the weights at all: the reflex fires a random effector when nothing else is running, so a cost would not reach it.
 
 #### There is no window
-It was built and priced across the range the arithmetic allowed, and every price made the vehicle worse:
+It was built and priced across the range the arithmetic allowed, and every price made the vehicle worse. This was measured on the critic before either of the two corrections above, and has not been repeated since:
 
 | a spike costs | holds the object | effector spikes |
 |---------------|------------------|-----------------|

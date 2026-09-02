@@ -39,3 +39,30 @@ class DelayBank:
         firing = set(firing)
         return [source for source, cell in self.cells.items()
                 if cell.update(t, source in firing)]
+
+
+class MemoryCell:
+    """Set by one input, cleared by another, and firing all the while between.
+
+    The counterpart of the delay cell: that one remembers *when* something
+    happened, this one remembers *that* it did and has not been undone. Its
+    output is the only tonic thing in a project made of changes — which is what
+    lets anything downstream be told that a state of affairs is still the case,
+    rather than only that it began.
+    """
+
+    def __init__(self, rate_hz):
+        self._period = 1000 / rate_hz
+        self.held = False
+        self._next = None
+
+    def update(self, t, set_it=False, clear_it=False):
+        """Whether it fires now, having been given what arrived at its inputs."""
+        if set_it and not self.held:
+            self.held, self._next = True, t
+        elif clear_it:
+            self.held, self._next = False, None
+        if self.held and (self._next is None or t >= self._next):
+            self._next = t + self._period
+            return True
+        return False

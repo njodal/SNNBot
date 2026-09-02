@@ -131,6 +131,11 @@ HEAD_MAX_RATE_DEG_S = HEAD_EFFECTORS[0][0] * HEAD_DEG_PER_SPIKE   # 450 deg/s, a
 NECK_MAX_RATE_DEG_S = NECK_EFFECTORS[0][0] * NECK_DEG_PER_SPIKE   # 160 deg/s, a
                                   # human head turn at 100 to 200
 GAZE_RANGE_DEG = HEAD_RANGE_DEG + NECK_RANGE_DEG          # 125: the two add up
+RECENTRE_KP = 1.0                 # PROVISIONAL: 1/s, so the eye is brought back
+                                  # to the middle of its own range in about a
+                                  # second — slower than the half second it takes
+                                  # to catch something, so that giving the range
+                                  # back never competes with the catching
 
 # One propioceptive level covers 2 * range / PROP_SENSORS: 9 degrees for the
 # head, exactly one cell of the eye, and 16 for the neck, near two of them. The
@@ -150,6 +155,10 @@ ACTING_COSTS = 0.0                # SPEC 005: what one effector spike costs, and
                                   # the vehicle worse, for the reason written up
                                   # there. Kept, so that it can be charged again
                                   # once there is a vehicle able to earn.
+MEMORY_RATE_HZ = 20               # PROVISIONAL: how often the cell that holds
+                                  # *still centred* fires while it holds it
+CENTRED_PAYS = 0.05               # PROVISIONAL: what one of those spikes is
+                                  # worth, so a second of being centred pays 1
 ARRIVING_PAYS = 1.0               # SPEC 005: the middle cell going busy
 LEAVING_COSTS = 1.0               # SPEC 005: and going empty. The same, not more:
                                   # what makes staying worth anything is that the
