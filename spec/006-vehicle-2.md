@@ -128,6 +128,16 @@ The object stands still at 36 degrees, at the far edge of the eye. It is caught 
 | 10° | eye 23.2, neck 8.3 | eye 11.8, neck 19.7 | eye 10.2, neck 21.3 |
 | 20° | eye 28.4, neck 3.1 | eye 21.1, neck 10.4 | eye 20.2, neck 11.3 |
 
+![Version A: the neck taking over what the eye was holding](../docs/images/vehicle2_a.gif)
+
+Eleven seconds of the first row of that table, the comfortable range set to nothing so that the handover is complete. The vehicle catches the object with its eye; spends the next five seconds changing which joint holds it, the object sitting in the middle cell throughout and the neck ending up pointing very nearly at it; and then the object leaves, sliding away to the right at five degrees a second.
+
+That last stretch is the two loops settling into the regime they settle into whenever something has to be watched rather than glanced at: **the eye parks a fixed few degrees off its middle and the neck does the following.** The parking angle is not a setting. The neck can only move at `Kr` times how far the eye is off centre, so for the neck to keep up with five degrees a second the eye has to stand five degrees out and stay there — the speed divided by `Kr`, which is what the picture shows to a tenth of a degree.
+
+The three rows underneath are what the vehicle itself has to go on: the eye fires a handful of times in the whole run, and the two propioceptive arrays — one sensor of ten firing at a time, drawn at the height of whichever it is — walk in opposite directions as the neck takes over. The traces at the bottom are the ground truth, which it does not have.
+
+That picture is also what found the one bug this vehicle has turned up so far. The head's row fell silent as the eye came home, and it was not the drawing: the ten sensors of [spec 001](001-neuromorphic-sensors.md) ran from 0 to 10, then 11 to 20, and so on, leaving a unit of gap between each pair — so a contraction between 50 and 51 was read by nobody. A vehicle that moves in whole steps never lands in a gap, and none of them ever had; Version A turns its joints continuously and landed there about a tenth of the time, including at exactly the level an eye that has come back to its middle rests at. The ranges are half open now, which is the convention the cells of the eye were already tiled with.
+
 The gaze is 31.5 degrees in every one of those cells and the object never leaves the middle of the eye. Nothing about the task is done better or worse. What the range buys is how much of its travel the eye has left when the vehicle is done: all of it at zero, half of it on one side at twenty. It is a decision about posture and not about performance, which is the sort of number this project should be explicit about having chosen.
 
 It shows as an ability rather than a posture as soon as the object goes somewhere the eye alone cannot follow. Sliding left at 10 degrees a second for nine seconds, from 18 degrees out to 108, the vehicle settles into following it with the neck at 10 degrees a second and the eye parked a fixed few degrees off its middle — which is what a human does with anything that has to be watched for longer than a glance. It keeps the object within a cell of the middle until the neck runs out of range at 80 degrees, and ends with the object in cell 4 and its eye still 15 degrees from its stop.
