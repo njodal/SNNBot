@@ -142,6 +142,82 @@ The gaze is 31.5 degrees in every one of those cells and the object never leaves
 
 It shows as an ability rather than a posture as soon as the object goes somewhere the eye alone cannot follow. Sliding left at 10 degrees a second for nine seconds, from 18 degrees out to 108, the vehicle settles into following it with the neck at 10 degrees a second and the eye parked a fixed few degrees off its middle — which is what a human does with anything that has to be watched for longer than a glance. It keeps the object within a cell of the middle until the neck runs out of range at 80 degrees, and ends with the object in cell 4 and its eye still 15 degrees from its stop.
 
+## Version B: the same circuit on each joint
+
+Version A is two controllers reading numbers. This one is two layers of cells reading spikes, and they are the same layer twice.
+
+**The eye's is [Version D of spec 005](005-vehicle-1.md), unchanged.** Seventy two correlation cells over the retina, a weight from every cell to every effector, credit handed out by the partition, and babbling for as long as no weight is worth anything.
+
+**The neck's is that circuit with its inputs moved.** A correlation cell has a predecessor input and a successor input, and in the eye's layer they are wired to a cell of the retina going empty and another going busy. In the neck's they are wired to the head joint's **propioceptive array** — one of its ten sensors going out of range and another coming into it. So a cell of this layer does not say *the object moved from there to here*, it says *the eye did*; and better is not the object nearing the middle of the eye but the eye nearing the middle of its own range.
+
+Nothing in the circuit knows the difference. That is the point of trying it.
+
+Two things had to be settled to point it at a body instead of at the world, and both are properties of the array rather than of the circuit:
+
+- **The array is tonic.** [Spec 001](001-neuromorphic-sensors.md) has it keep firing for as long as the level stays where it is, which says the same thing over and over, while a correlation cell asks when something *arrived*. So only the first ON after an OFF is passed on — a cell per sensor, firing on the edge of its input and deaf while it holds.
+- **It has ten sensors and therefore no middle one.** The partition takes the middle to be 5.5: a place to be near rather than a cell to be in. Everything else about `outcome` is untouched, and the eye, with its nine, is judged exactly as before.
+
+### One at a time, and the eye first
+
+The eye's layer is taught alone and **frozen** before the neck's begins. Both halves of that are necessary, and for different reasons.
+
+A neck that babbles while the eye is being taught makes the object appear to move, and Version D is taught against an object that never moves for exactly that reason — so that every change on the retina is the vehicle's own doing and the credit is clean. Taught together, the pair ends up worse than the eye on its own, and by a lot.
+
+And a neck has nothing to learn from until the eye works. Contracting a neck actuator does not move the head joint at all: it swings the gaze, the object lands on another cell of the eye, the eye's own layer turns the eye, and only *then* does the neck's input move. The neck is learning the consequence of a consequence, through another learner, and if that learner does nothing the chain does not exist.
+
+![Version B, one seed of it](../docs/images/vehicle2_b.gif)
+
+Fifteen seconds of one of the better seeds: the eye near the middle of its range, the neck carrying the gaze, both sets of effectors firing. It is the same division of labour Version A settled into, arrived at this time by two layers of cells that were told nothing about each other.
+
+### What the neck's layer learns
+
+To ask what the layer found, rather than what the pair manage, the chain it depends on has to be made reliable — so the head is driven by the ground truth of Version A and only the neck is left to its layer. Taught 120 seconds against a still object, then put through the experiment of spec 005:
+
+| the head on Version A, the neck as marked | in the middle | mean \|eye\| |
+|---|---|---|
+| a neck that never moves | 12.37 s of 15 | 16.6° |
+| Version A's neck | 12.37 s | 3.2° |
+| the layer it learnt, over three seeds | 6.96, 1.62, 9.45 s | 7.1, 6.7, 2.3° |
+
+The right hand column is the result. **The neck does bring the eye home** — the eye ends up half as far off its middle, or better — and of the sixteen or so cells that ever fire, 13 of 16, 15 of 16 and 15 of 16 chose the side that brings it back. From nothing but its own babbling and a partition over its own sensors, the layer works out that the neck must turn the way the eye is turned. That is the same kind of claim Version E of spec 005 makes: not how well it did, but what it understood.
+
+The middle column is what it costs, and the cost is the missing reflex. Every movement of the neck swings the gaze and nothing tells the eye it is coming. Version A handed the neck's rate straight to the eye — a vestibulo-ocular reflex, a wire and not a controller — and there is no such wire here. The eye finds out the way it finds out about everything, by the object turning up on a different cell, and by then it has been dragged most of a cell away. **Twelve seconds of fifteen with a VOR, seven without**: that is the number.
+
+### On the eye it actually has, it is worse than the eye alone
+
+That was with a ground truth eye underneath. On the eye Version D produces, over six seeds taught 120 seconds a stage:
+
+| | in the middle | mean \|eye\| |
+|---|---|---|
+| the eye's layer alone | 4.81 s of 15 | 10.4° |
+| with the neck it then learnt | 1.50 s | 19.0° |
+
+Both worse. And it is not the pre-training that fails — the layer is taught exactly as it was in the rig above, on a frozen eye that has already been schooled. What fails is the eye. Teaching the same neck on the ground truth gives 13, 15 and 15 of 16 cells the right way; teaching it on the learnt eye gives 12 of 17, 5 of 17 and 15 of 16. A learner that has to reach the world through another learner inherits its noise, and Version D's eye is noisy: over those six seeds it holds the object for anywhere from 0.00 to 10.22 seconds, a spread wider than anything the neck does to it.
+
+So the honest reading of this version is that **the neck's circuit works and the vehicle does not**, and what stands between them is the quality of the eye it has to act through.
+
+### What one command is worth
+
+There is a second reason, and it is not about learning at all. An effector runs its own duration, so what a single command comes to is `frequency × duration × degrees per spike`:
+
+| the neck's ladder | one burst | | the eye's ladder | one burst |
+|---|---|---|---|---|
+| 100 Hz for 400 ms | **64°** | | 500 Hz for 40 ms | 18° |
+| 50 Hz for 600 ms | 48° | | 250 Hz for 80 ms | 18° |
+| 20 Hz for 1000 ms | 32° | | 100 Hz for 200 ms | 18° |
+| 5 Hz for 1000 ms | 8° | | 20 Hz for 500 ms | 9° |
+
+The neck's fastest command moves it sixty four degrees — four fifths of its whole range — in one go, which is enough to throw the object clear off an eye that only spans eighty one. Version A never did that, because a controller sets a rate and decides again a millisecond later; a spiking layer picks a burst and lets it run to the end. The teeth on the gaze trace in the picture above are that, at the gentler end of the ladder.
+
+Those durations were chosen to match how long a human head turn takes, and the frequencies to match how fast one goes. What nobody checked is what the two come to multiplied together, which is the only number that matters to something that decides once per movement. Keeping the speeds and shortening the bursts — 100 Hz for 100 ms, and so on down — gives 16, 16, 8 and 3 degrees, and on the ground truth rig it changes the vehicle's character entirely:
+
+| | in the middle | mean \|eye\| |
+|---|---|---|
+| the ladder as specified | 6.96, 1.62, 9.45 s | 7.1, 6.7, 2.3° |
+| the same speeds in shorter bursts | 11.99, 9.94, 10.66 s | 5.9, 24.8, 14.6° |
+
+Twelve seconds is what a neck that never moves scores, so the task comes back almost entirely — and the eye is left further out. It is the same exchange as the VOR one seen from the other end: with nothing cancelling the gaze a neck movement causes, every degree the neck buys back for the eye is paid for in gaze, and **how far one command moves the neck is the exchange rate**. Neither end of it is free, and this vehicle has no way of pricing either.
+
 ## Acceptance criteria
 
 - [ ] The body has four actuators in two antagonist pairs, and four propioceptive sensors, one per actuator.
@@ -157,11 +233,19 @@ It shows as an ability rather than a posture as soon as the object goes somewher
 - [ ] With no comfortable range set aside, the neck ends up holding the whole gaze and the eye ends within a couple of degrees of its own middle.
 - [ ] It does that without the object leaving the middle cell of the eye.
 - [ ] Either joint may turn back on itself; the gaze may not.
+- [ ] Version B's two layers are the same class of cell, told apart only by what they are wired to.
+- [ ] The neck's layer never reads the retina, and the eye's never reads a propioceptive array.
+- [ ] A sensor that goes on reporting the same level produces one arrival, not one per spike.
+- [ ] Taught against a ground truth eye, most of the cells the neck's layer learns choose the side that brings the eye back towards the middle of its range.
+- [ ] The eye's layer is frozen before the neck's is taught, and nothing teaches both at once.
 
 ## Open questions
 
 - **What is the comfortable range, and does anything have to decide it?** Version A no longer needs anything to choose between the joints — the eye moves because it sees, the neck moves because the eye moved — but it is still handed a number saying how far off centre an eye may sit before its neck is worth troubling. What would settle that number honestly is a vehicle that pays for moving, the neck being the expensive joint: with `ACTING_COSTS` of spec 005 charging for spikes, a range that is too small is measurable as waste rather than a matter of taste.
 - **How does the eye re-centre on spikes?** Version A does it by reading the head's angle as a number and handing the eye a copy of the neck's command. Neither is available to a spiking vehicle. The angle would have to come from the head's 1x10 propioceptive array, which resolves 9 degrees a level, so the giving back would happen in steps of a whole cell rather than smoothly. The copy of the command is worse: there is nothing to copy, the command being spikes to an actuator, so either the effectors reach the eye's own effectors directly — a reflex arc, which is what the real one is — or the vehicle needs the velocity sensor it has not got.
+- **What would a VOR made of spikes be?** Version B measures what its absence costs — half the time on target. The arc it is missing goes from the neck's effectors to the eye's, and it is a reflex rather than anything learnt, so it could be wired. Whether it can instead be *learnt*, by a layer whose inputs are the neck's own effectors, is the more interesting question and the one this project would rather ask.
+- **What should one command be worth?** [Spec 003](003-neuromorphic-actuators.md) gives an effector a frequency and a duration and says what each is for, and nothing anywhere says what their product should be. For a joint driven by a controller it does not matter; for one driven by a layer that picks a burst and lets it run, it is the whole of what a decision costs. The eye's ladder lands on one or two cells by luck rather than by design.
+- **In what order should the two be taught?** Nothing in the vehicle says the eye must be schooled first, and everything in the measurements says it must. A rule imposed from outside is not a rule the vehicle has, so either something in it has to want the order, or the two have to be made teachable at once.
 - **Can the sensory layer keep the two apart?** Its correlation cells tie a movement to what it did to the eye, and there are now two movements that do the same thing to it. Four propioceptive sensors say which one happened; whether the correlation cells can use that, or need a second input, is not settled.
 - **Does babbling still work with four actuators?** Two unwired pairs babble at once, and the eye sees the sum. Some of the credit for what changed then belongs to a joint that happened to move at the same time, which is exactly the confusion Version D of spec 005 was taught against a still object to avoid.
 - **Is one step size per joint enough?** The neck's 1.6 degrees was chosen to give it ±80 out of the same contraction range, not because anything wanted a coarser step. Giving it a longer contraction range instead would keep the step, and would say that the neck is a bigger muscle rather than a rougher one.

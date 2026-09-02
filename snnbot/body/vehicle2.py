@@ -9,6 +9,7 @@ says which joint moved.
 from ..layers.effector import EffectorLayer
 from ..params import (HEAD_DEG_PER_UNIT, HEAD_EFFECTORS, NECK_DEG_PER_UNIT,
                       NECK_EFFECTORS, STEP)
+from ..events import ON, Event
 from .actuator import Actuator
 from .proprioception import ProprioceptiveArray
 from .retina import Retina
@@ -72,6 +73,26 @@ class Joint:
         return fired
 
 
+class Gain:
+    """One spike in, so many out: an integrator that fires whenever it is full.
+
+    The neck and the head are not worth the same per spike — 1.6 degrees against
+    0.9 — so a wire between them cannot be one for one, and a spike cannot be cut
+    in half. What can be done is what a cell does anyway: add the weight up and
+    fire whenever the total has come to one.
+    """
+
+    def __init__(self, gain):
+        self.gain = gain
+        self._charge = 0.0
+
+    def spikes(self, arriving):
+        self._charge += arriving * self.gain
+        whole = int(self._charge)
+        self._charge -= whole
+        return whole
+
+
 class Vehicle2:
     """The body, and whatever drives it.
 
@@ -80,9 +101,16 @@ class Vehicle2:
     the effectors step aside and the controller turns each joint directly.
     """
 
-    def __init__(self, world, rng=None, wired=False, controller=None):
+    def __init__(self, world, rng=None, wired=False, controller=None,
+                 eye_reflex=None, neck_reflex=None, vor=False):
         self.world = world
         self.controller = controller
+        self.eye_reflex, self.neck_reflex = eye_reflex, neck_reflex
+        wired = wired or eye_reflex is not None or neck_reflex is not None
+        self._last_eye, self._last_sense = [], []
+        # The reflex arc of spec 006: the neck's effectors reach the eye's, so
+        # that a neck that moves is given way to before anything has to see it.
+        self.vor = Gain(NECK_DEG_PER_UNIT / HEAD_DEG_PER_UNIT) if vor else None
         self._last_t = None
         self.retina = Retina()
         self.head = Joint(HEAD, HEAD_DEG_PER_UNIT, HEAD_EFFECTORS, wired=wired, rng=rng)
@@ -107,24 +135,70 @@ class Vehicle2:
         fired = {}
         elapsed, self._last_t = 0 if self._last_t is None else t - self._last_t, t
 
+        driven = list(self.joints)      # the joints their own effectors move
         if self.controller is not None:
             # Version A: the controller reads the active cell as a number and
-            # turns both joints itself. No effector fires, no spike is involved.
+            # turns the joints itself. No effector fires, no spike is involved.
+            # A joint that has a layer of its own is left to it — which is how a
+            # spiking neck gets to be tried against an eye known to work.
             head_rate, neck_rate = self.controller.update(
                 t, self.retina.busy_cell(), self.head_deg)
             self.head.turn(t, head_rate * elapsed / 1000)
-            self.neck.turn(t, neck_rate * elapsed / 1000)
-            return self._sense(t, fired)
+            driven = []
+            if self.neck_reflex is None:
+                self.neck.turn(t, neck_rate * elapsed / 1000)
+            else:
+                driven = [self.neck]
 
-        for joint in self.joints:
+        # Version B: a layer of its own on each joint, reading different things.
+        # The eye's is wired to the retina, the neck's to the propioceptive array
+        # of the head — so what the neck learns about is where the eye is sitting.
+        if self.eye_reflex is not None:
+            sensed = self.eye_reflex.update(t, self.retina.busy_cell(),
+                                            self._last_eye, self.head.effectors)
+            if sensed:
+                fired["sensory.eye"] = sensed
+        if self.neck_reflex is not None:
+            sensed = self.neck_reflex.update(t, None, self._last_sense,
+                                             self.neck.effectors)
+            if sensed:
+                fired["sensory.neck"] = sensed
+
+        for joint in driven:
             fired.update(joint.driven_by_spikes(t))
+
+        if self.vor is not None:
+            for side in (LEFT, RIGHT):
+                arriving = len(fired.get(f"effector.{NECK}.{side}", ()))
+                if not arriving:
+                    continue
+                # give way the other way round: a neck turning left needs an eye
+                # turning right by as much, and the gaze does not move at all
+                gives, holds = (RIGHT, LEFT) if side == LEFT else (LEFT, RIGHT)
+                spikes = self.vor.spikes(arriving)
+                for _ in range(spikes):
+                    self.head.actuators[gives].on_spike(t)
+                    self.head.actuators[holds].stretched_by(STEP)
+                if spikes:
+                    fired.setdefault("vor", []).extend(
+                        Event(t, (gives,), ON) for _ in range(spikes))
+
+        for reflex, name in ((self.eye_reflex, HEAD), (self.neck_reflex, NECK)):
+            if reflex is not None:
+                reflex.spent(sum(len(s) for k, s in fired.items()
+                                 if k.startswith(f"effector.{name}")))
         return self._sense(t, fired)
 
     def _sense(self, t, fired):
         """What the body and the world are now, as spikes."""
         eye = self.retina.update(t, self.world.object_deg, self.gaze_deg)
+        self._last_eye = eye            # what the correlation cells read next moment
         if eye:
             fired["retina"] = eye
         for joint in self.joints:
             fired.update(joint.sense(t))
+        # The neck's layer reads one of the head's two arrays. The other is its
+        # mirror — the pair being antagonists — so it would say the same thing
+        # backwards and double the cells for nothing.
+        self._last_sense = fired.get(f"proprioception.{HEAD}.{LEFT}", [])
         return fired

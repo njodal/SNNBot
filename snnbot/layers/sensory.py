@@ -21,6 +21,7 @@ from ..params import (BABBLE_EVERY_MS, CELL_ANGLE_DEG, CORRELATION_MAX_MS,
                       DEG_PER_SPIKE,
                       EFFECTORS, LEAVING_COSTS, ORDER_DELAY_MS, VALUE_HALVES_IN_MS,
                       ELIGIBILITY_MS, EXPLORE, EYE_CELLS, LEARNING_RATE,
+                      NECK_EFFECTORS, PROP_SENSORS,
                       STEERING, TICK_MS, WEIGHT_MAX)
 
 LEFT, RIGHT = "left", "right"
@@ -170,8 +171,13 @@ def outcome(pair, cells=EYE_CELLS):
     measurement, nothing worked out while running: a fixed property of the cell,
     decided when the layer is built. Of the 72, thirty two mean better, thirty
     two mean worse, and eight mean neither, being the ones that cross over.
+
+    The middle of an array with an even number of cells falls between two of
+    them, which is fine: nothing here needs it to be a cell, only to be a place
+    to be near. The propioceptive array of [spec 001](001-neuromorphic-sensors.md)
+    has ten, and its middle is the level a joint rests at.
     """
-    i, j, middle = pair[0], pair[1], (cells + 1) // 2
+    i, j, middle = pair[0], pair[1], (cells + 1) / 2
     return (abs(i - middle) > abs(j - middle)) - (abs(i - middle) < abs(j - middle))
 
 
@@ -194,6 +200,7 @@ class LearningReflex(CorrelationReflex):
                  babble_every_ms=BABBLE_EVERY_MS, speed=False,
                  window=(CORRELATION_MIN_MS, CORRELATION_MAX_MS)):
         super().__init__(wiring=correlation_wiring(cells), window=window)
+        self.n_cells = cells
         self.rng, self.lr, self.explore = rng, lr, explore
         self.learning = True        # turned off to see what it has got, not to teach
         self._eligibility_ms, self._babble_every = eligibility_ms, babble_every_ms
@@ -238,9 +245,17 @@ class LearningReflex(CorrelationReflex):
                 w = self.weights[cell][action] + self.lr * reward * left
                 self.weights[cell][action] = max(-WEIGHT_MAX, min(WEIGHT_MAX, w))
 
+    def holding(self, layers):
+        """Whether to let the movement it last asked for finish before deciding again.
+
+        Never, for a layer on an eye: the eye is the fastest thing in the vehicle
+        and what it is watching can change while it moves.
+        """
+        return False
+
     def told(self, t, move, firing, eye):
         """What it is told about the move it just saw. Handed to it, in this one."""
-        return outcome(move) if move is not None else 0
+        return outcome(move, self.n_cells) if move is not None else 0
 
     def update(self, t, active_cell, eye, layers):
         move = self.moved(t, eye)
@@ -250,6 +265,7 @@ class LearningReflex(CorrelationReflex):
 
         if firing:
             self.reinforce(t, self.told(t, move, firing, eye))
+        if firing and not self.holding(layers):
             self.awake = self.choose(*firing)
             for cell in firing:
                 self._eligible[(cell, self.awake)] = t
@@ -466,3 +482,70 @@ class ValueReflex(LearningReflex):
         if not self.learning:
             return 0
         return self.critic.update(t, firing)
+
+
+class Arrivals:
+    """A tonic array read as the change based stream a correlation cell wants.
+
+    The propioceptive sensors of [spec 001] keep firing for as long as the level
+    stays where it is, which says the same thing over and over. A correlation
+    cell asks when something *arrived*, so only the first ON after an OFF is
+    passed on — one cell per sensor, firing on the edge of its input and deaf
+    while it holds.
+    """
+
+    def __init__(self):
+        self._holding = set()
+
+    def update(self, events):
+        passed = []
+        for event in events:
+            index = event.address[0]
+            if event.p is OFF:
+                self._holding.discard(index)
+                passed.append(event)
+            elif index not in self._holding:
+                self._holding.add(index)
+                passed.append(event)
+        return passed
+
+
+class PostureReflex(LearningReflex):
+    """Version B of [spec 006], the neck's half: Version D's circuit on a joint.
+
+    The same cells, the same weights, the same credit, the same babbling. What
+    differs is what the two inputs of a correlation cell are wired to — a
+    propioceptive array instead of a retina — and therefore what a cell of the
+    layer means. Not *the object moved from there to here* but *the eye did*,
+    and better is not the object nearing the middle of the eye but the eye
+    nearing the middle of its own range.
+
+    Nothing about the circuit knows the difference. That is the point of trying
+    it: the same thing that learnt to look at something, pointed at the body.
+
+    What it has to find is a longer way round than the eye's. Contracting a neck
+    actuator does not move the head joint at all — it swings the gaze, the object
+    lands on another cell of the eye, and the eye's own layer turns the eye. Only
+    then does this layer's input move. It is learning the consequence of a
+    consequence, and through another learner at that.
+    """
+
+    def __init__(self, rng, sensors=PROP_SENSORS, effectors=len(NECK_EFFECTORS),
+                 one_at_a_time=False, **kw):
+        super().__init__(rng, cells=sensors, effectors=effectors, **kw)
+        self.arrivals = Arrivals()
+        self.one_at_a_time = one_at_a_time
+
+    def holding(self, layers):
+        """One command per movement: deaf until the burst it asked for has run out.
+
+        A layer that decides again on every arrival decides in the middle of the
+        movement it is itself causing, and on this joint that closes a loop —
+        the neck swings the gaze, the eye answers, the answer is what this layer
+        reads, and it fires again. Letting the burst finish first breaks it.
+        """
+        return self.one_at_a_time and any(e.emitting for layer in layers.values()
+                                          for e in layer.effectors)
+
+    def update(self, t, active_cell, sense, layers):
+        return super().update(t, active_cell, self.arrivals.update(sense), layers)
