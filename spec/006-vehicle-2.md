@@ -232,30 +232,56 @@ Fifteen seconds of one of the better seeds: the eye near the middle of its range
 
 ### What the neck's layer learns
 
-To ask what the layer found, rather than what the pair manage, the chain it depends on has to be made reliable — so the head is driven by the ground truth of Version A and only the neck is left to its layer. Taught 120 seconds against a still object, then put through the experiment of spec 005:
+To ask what the layer found, rather than what the pair manage, the chain it depends on has to be made reliable — so the head is driven by the ground truth of Version A and only the neck is left to its layer. Taught 120 seconds against a still object, then put through the experiment of spec 005, over six seeds:
 
-| the head on Version A, the neck as marked | in the middle | mean \|eye\| |
-|---|---|---|
-| a neck that never moves | 12.37 s of 15 | 16.6° |
-| Version A's neck | 12.37 s | 3.2° |
-| the layer it learnt, over three seeds | 6.96, 1.62, 9.45 s | 7.1, 6.7, 2.3° |
+| the head on Version A, the neck as marked | in the middle | mean \|eye\| | both joints travel |
+|---|---|---|---|
+| a neck that never moves | 12.37 s of 15 | 16.6° | 50° |
+| Version A's own neck | 12.96 s | 12.0° | 63° |
+| the layer it learnt | 8.19 s | 3.5° | 1015° |
 
-The right hand column is the result. **The neck does bring the eye home** — the eye ends up half as far off its middle, or better — and of the sixteen or so cells that ever fire, 13 of 16, 15 of 16 and 15 of 16 chose the side that brings it back. From nothing but its own babbling and a partition over its own sensors, the layer works out that the neck must turn the way the eye is turned. That is the same kind of claim Version E of spec 005 makes: not how well it did, but what it understood.
+**The neck does bring the eye home** — 3.5 degrees against 16.6 — and of the sixteen or so cells that ever fire, 13 to 15 choose the side that does it. From nothing but its own babbling and a partition over its own sensors, the layer works out that the neck must turn the way the eye is turned. That is the same kind of claim Version E of spec 005 makes: not how well it did, but what it understood.
 
-The middle column is what it costs, and the cost is the missing reflex. Every movement of the neck swings the gaze and nothing tells the eye it is coming. Version A handed the neck's rate straight to the eye — a vestibulo-ocular reflex, a wire and not a controller — and there is no such wire here. The eye finds out the way it finds out about everything, by the object turning up on a different cell, and by then it has been dragged most of a cell away. **Twelve seconds of fifteen with a VOR, seven without**: that is the number.
+The other two columns are what it costs. It holds the object four seconds less, because every movement of the neck swings the gaze and nothing tells the eye it is coming — the eye finds out by the object turning up on a different cell, and by then it has been dragged most of a cell away. And it moves the body **sixteen times as far** as the controller does for a worse result, most of it in the neck, which is the joint Version A goes out of its way not to spend.
 
-### On the eye it actually has, it is worse than the eye alone
+### What Version A lent it
+
+Two things, and neither is a change to the circuit.
+
+**The comfortable range, as wiring.** Version A leaves the eye twenty degrees to hold on its own and troubles the neck only past them, because the eye is the cheap joint. Here that cannot be a threshold anything reads, so it is which sensors the layer is wired to: the successor input of a cell reaches only the outer ones, and an eye wandering about the middle of its range wakes nothing at all. With ten sensors over ninety degrees the cut can only land on a sensor's edge, so twenty degrees comes out as the middle four of the ten — the propioception quantises the parameter the way the retina quantises the error.
+
+**The vestibulo-ocular reflex, as spikes.** Version A hands the eye the rate the neck is taking. Here the neck's effectors reach the eye's actuators, and because a neck spike is worth 1.6 degrees and an eye spike 0.9 the wire cannot be one for one — it goes through a cell that adds up the weight and fires whenever the total has come to one, sixteen out for every nine in. That changes more than the gaze. Without it, contracting a neck actuator does not move the head joint at all, and the layer is learning through the retina and the eye's answer to it; with it, **a neck spike moves the head joint at once**, and the head joint is what this layer reads. The problem stops being the consequence of a consequence and becomes local.
+
+On the same rig, six seeds:
+
+| | in the middle | mean \|eye\| | both joints travel |
+|---|---|---|---|
+| as it was | 8.19 s | 3.5° | 1015° |
+| with the comfortable range | 7.22 s | 14.8° | 475° |
+| with the reflex | 12.26 s | 4.1° | 315° |
+| **with both** | **12.30 s** | 13.0° | **306°** |
+
+The reflex is what recovers the task: 12.3 seconds is the 12.37 a neck that never moves scores, so the spiking neck reaches Version A's result while doing what Version A's neck does. The comfortable range is what recovers the movement — on its own it cuts the travel by more than half at some cost to the task, and alongside the reflex it costs nothing. Between them the body moves 306 degrees where it moved 1015, which is still five times what the controller needs, and no longer twenty.
+
+### On the eye it actually has
 
 That was with a ground truth eye underneath. On the eye Version D produces, over six seeds taught 120 seconds a stage:
 
-| | in the middle | mean \|eye\| |
-|---|---|---|
-| the eye's layer alone | 4.81 s of 15 | 10.4° |
-| with the neck it then learnt | 1.50 s | 19.0° |
+| | in the middle | best seed | both joints travel |
+|---|---|---|---|
+| the eye's layer alone | 4.60 s of 15 | 10.22 s | 927° |
+| the neck as it was | 2.59 s | 6.36 s | 2014° |
+| with the comfortable range | 1.05 s | 2.94 s | 714° |
+| with the reflex | 4.78 s | 9.71 s | 2952° |
+| **with both** | **5.14 s** | **11.72 s** | 1793° |
 
-Both worse. And it is not the pre-training that fails — the layer is taught exactly as it was in the rig above, on a frozen eye that has already been schooled. What fails is the eye. Teaching the same neck on the ground truth gives 13, 15 and 15 of 16 cells the right way; teaching it on the learnt eye gives 12 of 17, 5 of 17 and 15 of 16. A learner that has to reach the world through another learner inherits its noise, and Version D's eye is noisy: over those six seeds it holds the object for anywhere from 0.00 to 10.22 seconds, a spread wider than anything the neck does to it.
+Which is the first time in this vehicle that a neck has been worth having: with the two of them the pair beats the eye on its own, on the average and by a wider margin at its best.
 
-So the honest reading of this version is that **the neck's circuit works and the vehicle does not**, and what stands between them is the quality of the eye it has to act through.
+The middle two rows are worth reading before the last one. **Each change on its own buys one thing and spends the other.** The reflex buys the task — 2.59 seconds to 4.78 — and lets the neck thrash for free, since a neck movement no longer costs any gaze: 2952 degrees of travel, the most of any row here. The comfortable range buys the movement, cutting the travel to 714, and on its own it is the worst row in the table, because a neck that is woken only when the eye is already far out then swings it with a whole burst and there is nothing to cancel what that does to the gaze. Only together do they come out ahead of both.
+
+The per-seed numbers say the rest: with both it scores 11.72, 9.73, 7.72, 0.96, 0.73 and 0.00. Three seeds learn it and three do not, which is not a spread so much as two outcomes. Every learnt version in this project has been like that, and none of them as plainly.
+
+What is still wrong is the travel. Even at its best the pair moves 1524 degrees where Version A needs 63, and where it goes is into the neck. A vehicle that paid for moving would not do this, and it has no way to pay: `ACTING_COSTS` charges the same for every spike wherever it lands, and by that reckoning a degree of neck is cheaper than a degree of eye.
 
 ### What one command is worth
 

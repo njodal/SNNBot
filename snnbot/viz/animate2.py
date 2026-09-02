@@ -222,7 +222,7 @@ def animate_b(path="vehicle2_b.gif", seconds=11.0, seed=1, object_deg=36.0, ever
     where = (experiment_path(object_deg) if moving else
              standing_then_right(object_deg, right * 1000) if right else None)
     world = World(object_deg=object_deg, path=where)
-    vehicle = Vehicle2(world, rng=random.Random(seed + 2), neck_reflex=neck,
+    vehicle = Vehicle2(world, rng=random.Random(seed + 2), neck_reflex=neck, vor=True,
                        controller=GazeController(vor=False) if truth else None,
                        eye_reflex=None if truth else eye)
     raster, frames, trace = deque(maxlen=8000), [], []

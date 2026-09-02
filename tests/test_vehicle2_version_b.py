@@ -67,14 +67,37 @@ def test_it_is_the_same_circuit_over_the_sensors_of_a_joint():
     assert len(neck.actions) == 2 * len(NECK_EFFECTORS)
 
 
+def fed(neck, leaving, arriving, ticks=80):
+    """Walk the eye from one sensor of the head's array to another."""
+    layers, seen = neck_layers(), []
+    for t in range(0, ticks):
+        events = ([Event(t, (leaving,), OFF)] if t == 0 else
+                  [Event(t, (arriving,), ON)] if t in (0, 20, 40) else [])
+        seen += neck.update(t, None, events, layers)
+    return [e.address for e in seen]
+
+
 def test_it_fires_on_the_eye_moving_from_one_sensor_to_the_next():
     """Which is what its cells are about: not where the object is, where the eye is."""
-    neck, layers, seen = PostureReflex(random.Random(0)), neck_layers(), []
-    for t in range(0, 80):
-        events = ([Event(t, (6,), OFF)] if t == 0 else
-                  [Event(t, (5,), ON)] if t in (0, 20, 40) else [])
-        seen += neck.update(t, None, events, layers)
-    assert [e.address for e in seen] == [(6, 5)]        # once, not once per spike
+    assert fed(PostureReflex(random.Random(0)), 4, 3) == [(4, 3)]   # once, not per spike
+
+
+def test_it_has_no_cell_for_an_eye_wandering_about_its_middle():
+    """Version A's comfortable range, as the only thing it can be here: wiring.
+
+    The neck is the expensive joint, so it is not woken by an eye that is near
+    enough to the middle of its own range. With ten sensors over ninety degrees
+    the cut can only fall on a sensor's edge, so twenty degrees of comfort comes
+    out as the middle four of the ten.
+    """
+    neck = PostureReflex(random.Random(0))
+    assert sorted(neck.wired_to) == [1, 2, 3, 8, 9, 10]
+    assert fed(neck, 4, 5) == []                        # deeper into the middle
+    assert fed(neck, 4, 3) == [(4, 3)]                  # and out of it again
+
+
+def test_a_layer_with_no_comfort_is_wired_to_the_whole_array():
+    assert len(PostureReflex(random.Random(0), comfort=0.0).wired_to) == PROP_SENSORS
 
 
 def test_it_learns_from_the_eye_nearing_the_middle_of_its_range():

@@ -17,12 +17,12 @@ from .world import World, experiment_path, wandering
 
 def run(seconds=10.0, seed=1, object_deg=18.0, wired=False, controller=None,
         path=None, reflex=None, vehicle_cls=Vehicle1, eye_reflex=None,
-        neck_reflex=None):
+        neck_reflex=None, vor=False):
     world = World(object_deg=object_deg, path=path)
     extra = {"reflex": reflex} if reflex is not None else {}
     if eye_reflex is not None or neck_reflex is not None:
         vehicle_cls = Vehicle2
-        extra = {"eye_reflex": eye_reflex, "neck_reflex": neck_reflex}
+        extra = {"eye_reflex": eye_reflex, "neck_reflex": neck_reflex, "vor": vor}
     vehicle = vehicle_cls(world, rng=random.Random(seed), wired=wired,
                           controller=controller, **extra)
     recorder, clock = Recorder(), Clock()
@@ -58,7 +58,7 @@ def taught_pair(seconds, seed, object_deg):
     frozen(eye)
 
     neck = PostureReflex(random.Random(seed + 3))
-    run(seconds, seed + 1, object_deg, eye_reflex=eye, neck_reflex=neck)
+    run(seconds, seed + 1, object_deg, eye_reflex=eye, neck_reflex=neck, vor=True)
     return eye, frozen(neck)
 
 
@@ -89,7 +89,7 @@ def main():
         print(f"taught {args.learn:g} s a layer\n")
         path = experiment_path(args.object) if args.moving else None
         vehicle, rec = run(args.seconds, args.seed, args.object, path=path,
-                           eye_reflex=eye_reflex, neck_reflex=neck_reflex)
+                           eye_reflex=eye_reflex, neck_reflex=neck_reflex, vor=True)
         print(f"{args.seconds:g} s of a layer on each joint, seed {args.seed}, "
               f"object at {args.object:g} degrees\n")
         for source, n in sorted(rec.counts().items()):

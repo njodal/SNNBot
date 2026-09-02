@@ -21,6 +21,7 @@ from ..params import (BABBLE_EVERY_MS, CELL_ANGLE_DEG, CORRELATION_MAX_MS,
                       DEG_PER_SPIKE,
                       EFFECTORS, LEAVING_COSTS, ORDER_DELAY_MS, VALUE_HALVES_IN_MS,
                       ELIGIBILITY_MS, EXPLORE, EYE_CELLS, LEARNING_RATE,
+                      HEAD_COMFORT_DEG, HEAD_RANGE_DEG,
                       NECK_EFFECTORS, PROP_SENSORS,
                       STEERING, TICK_MS, WEIGHT_MAX)
 
@@ -531,10 +532,24 @@ class PostureReflex(LearningReflex):
     """
 
     def __init__(self, rng, sensors=PROP_SENSORS, effectors=len(NECK_EFFECTORS),
+                 comfort=HEAD_COMFORT_DEG, span=2 * HEAD_RANGE_DEG,
                  one_at_a_time=False, **kw):
         super().__init__(rng, cells=sensors, effectors=effectors, **kw)
         self.arrivals = Arrivals()
         self.one_at_a_time = one_at_a_time
+        # Version A leaves the eye a range it is content to hold and troubles the
+        # neck only past it, because the eye is the cheap joint to move. Here that
+        # is not a threshold anything reads: it is which sensors the layer is
+        # wired to. The successor input of a cell reaches only the outer ones, so
+        # an eye wandering about the middle of its range wakes nothing.
+        width = span / sensors
+        self.wired_to = {i for i in range(1, sensors + 1)
+                         if abs((i - 0.5) * width - span / 2) >= comfort}
+
+    def moved(self, t, sense):
+        """A move this layer has a cell for: one that ends outside the comfort."""
+        move = super().moved(t, sense)
+        return move if move is None or move[1] in self.wired_to else None
 
     def holding(self, layers):
         """One command per movement: deaf until the burst it asked for has run out.
