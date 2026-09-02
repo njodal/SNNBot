@@ -379,3 +379,46 @@ Which leaves the wire in place and the price at nothing. It is the right idea fo
 - **The signal is rare.** Every transition used to carry one; now only arriving at the middle does, which at the outset happens almost never. That is what the value cell is for, and it may still not be enough.
 - **It can be farmed.** If arriving pays, then leaving in order to arrive again pays. Worse, a change-based eye cannot report *still there*, so the reward can only ever be a moment and never a state — the same asymmetry already listed as open for Version D, here with a shorter fuse. The blow for leaving must weigh at least what the arrival pays.
 - **The delay is a real time, and transits are not.** Crossing a cell takes anywhere from 112 ms to over two seconds, twenty to one. One delay cannot match both ends, which is the same difficulty the correlation cells met — and it was answered there by having several, each with its own.
+
+## Version F: the controller, in cells
+Version A built out of the cells of [spec 010](010-cells.md), to the design of [spec 011](011-p-controller.md). The same body, the same experiment, the same `Kp`; what changes is that nothing reads a number. It is not a reflex that behaves like the ground truth. It *is* the ground truth, with the arithmetic replaced by wiring.
+
+### What it is made of
+- **Nine memory cells** hold where the object is, one per cell of the eye, each set by that cell going busy and cleared by it going empty. They are what turns an eye that only reports change into a line that fires while a thing is true, and they fire at the 50 Hz of the propioceptive arrays.
+- **Nine more** hold the reference. One of them is set — by the observer, here, which is allowed to — and it is the only thing in the vehicle that says where the object ought to be. Version B had it as a wire; here it is a spike into a row, and it can be moved.
+- **Eighty one coincidence cells**, one per pair, each fed by a memory cell of each row. Both rows fire at 50 Hz and out of step, so a coincidence is two spikes within one period of each other, 20 ms, and every spike counts once.
+- **A ladder of eight effectors** a side, cut to the gain. A rung for an error of `d` cells runs at `Kp × d × cell / step`, rounded to a whole millisecond of period, and capped at the 100 Hz Version A is capped at:
+
+| error | exact | built | period |
+|-------|-------|-------|--------|
+| 1 cell | 22.5 Hz | 22.7 Hz | 44 ms |
+| 2 | 45 Hz | 45.5 Hz | 22 ms |
+| 3 | 67.5 Hz | 66.7 Hz | 15 ms |
+| 4 | 90 Hz | 90.9 Hz | 11 ms |
+| 5 and beyond | 112.5 Hz and up | 100 Hz | 10 ms |
+
+- **The wiring** is the diagonal of the table a cell sits on: a cell `(i, j)` with `i − j = d` reaches the rung `|d|` of the right actuator if `d` is positive, and of the left if it is negative, the eye being numbered from the left. The diagonal `d = 0` reaches the stop of every effector.
+
+That is all of it. Under lateral inhibition, the last rung woken is the one that runs, and it keeps being woken by the table at 50 Hz for as long as the error holds. A rung's duration is 100 ms, so when the error simply vanishes — the object gone off the edge of the eye, and nothing left to say stop — the head coasts for at most that.
+
+![Version F running the experiment](../docs/images/version_f.gif)
+
+### What happened
+Over the experiment of Version A:
+
+| | holds the object in the middle | eye events | effector spikes |
+|---|---|---|---|
+| Version A, the ground truth | 12.37 s of 15 | 9 | — |
+| Version B, the reflex | 13.70 s | 93 | 63 |
+| **Version F, the controller in cells** | **14.17 s** | 189 | 63 |
+
+The head is never more than **1.45 degrees** from Version A's, and on average 0.31 — a sixth of a cell at worst, which is what quantising the law to a ladder of whole milliseconds costs. An object standing at 18 degrees is brought to the middle in 550 ms against Version A's 625, and the head comes to rest 13.6 degrees over against 13.5.
+
+Two of the numbers want reading, and they have the same cause. A step is a whole 0.8 degrees, and the last one lands *inside* the middle cell where Version A stops dead on its edge. That is why this vehicle holds the object longer than the law it copies: an object that then drifts has most of a step to cross before it is out, and Version A's has none. And it is why the eye fires twenty times as often. Version A's trembling at the boundary is a few hundredths of a degree and gone inside the eye's settling time; this vehicle's is a whole step, and at five degrees a second the object takes 160 ms to drift back out of it, which the eye reports every time. The chatter of Version A was always there. A step the size of a step is what makes it visible.
+
+Moving the reference does what spec 011 says it should. With the object dead ahead in cell 5 and the reference moved to cell 3, the head turns right until the object sits in cell 3, and the eye had nothing to do with the decision: it reported the move, not the reason.
+
+### Open questions
+- A rung restarted by the table begins with a spike, so a rung that keeps being restarted runs a little faster than its frequency says. The effect is inside the 1.45 degrees above, and it goes away if a second `start` while emitting extends the duration instead of being ignored — the open question of spec 003, which this vehicle now has a reason to want settled.
+- The reference is set by the observer. The row is there for a cortex to set, and nothing yet does.
+- The 100 ms a rung runs for is the only number in the vehicle that is neither the gain nor the body. Shorter, the head stops sooner when the object is lost and the rungs lose more of their rate to the gaps between runs; longer, the other way round. It has not been explored.

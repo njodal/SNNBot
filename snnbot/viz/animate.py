@@ -13,7 +13,8 @@ from PIL import Image, ImageDraw, ImageFont
 from ..body.vehicle1 import LEFT, RIGHT, Vehicle1
 from ..clock import Clock
 from ..control import ProportionalController
-from ..layers.sensory import CorrelationReflex, LearningReflex, Reflex, ValueReflex
+from ..layers.sensory import (CorrelationReflex, LearningReflex, ProportionalReflex,
+                              Reflex, ValueReflex)
 from ..events import ON
 from ..params import CELL_ANGLE_DEG, EYE_CELLS, TICK_MS
 from ..world import World, experiment_path, wandering
@@ -71,7 +72,8 @@ NAMES = {"ProportionalController": "Version A: ground truth",
          "Reflex": "Version B: reflex",
          "CorrelationReflex": "Version C: correlation cells",
          "LearningReflex": "Version D: what it learnt",
-         "ValueReflex": "Version E: what it worked out"}
+         "ValueReflex": "Version E: what it worked out",
+         "ProportionalReflex": "Version F: the controller in cells"}
 
 
 def _title(controller, reflex):
@@ -258,6 +260,8 @@ if __name__ == "__main__":
     p.add_argument("--pid", action="store_true", help="Version A, the ground truth")
     p.add_argument("--reflex", action="store_true", help="Version B, the reflex")
     p.add_argument("--correlation", action="store_true", help="Version C")
+    p.add_argument("--proportional", action="store_true",
+                   help="Version F, the ground truth's controller in cells")
     p.add_argument("--learn", type=float, metavar="SECONDS",
                    help="Version D, taught for this long first")
     p.add_argument("--value", type=float, metavar="SECONDS",
@@ -270,5 +274,6 @@ if __name__ == "__main__":
                       moving=a.moving, reflex=_taught(a, ValueReflex) if a.value else
                              _taught(a) if a.learn else
                              Reflex() if a.reflex else
-                             CorrelationReflex() if a.correlation else None)
+                             CorrelationReflex() if a.correlation else
+                             ProportionalReflex() if a.proportional else None)
     print(f"{n} frames -> {path}")

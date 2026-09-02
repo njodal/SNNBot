@@ -187,6 +187,22 @@ LEAVING_COSTS = 1.0               # SPEC 005: and going empty. The same, not mor
                                   # off, so a long visit nets more than a short
                                   # one and a round trip on the spot nets nothing
 
+# --- Version F, the controller in cells: spec 011 ---
+HOLD_RATE_HZ = 50                 # PROVISIONAL: how often a memory cell holding a
+                                  # level — where the object is, where the
+                                  # reference is — fires while it holds it. The
+                                  # rate of the propioceptive arrays, so that a
+                                  # table built for the eye reads a joint as well
+COINCIDENCE_WINDOW_MS = 1000 // HOLD_RATE_HZ   # SPEC 011: two tonic sources at
+                                  # the same rate fire out of step, so *together*
+                                  # has to mean within one period of them
+PROPORTIONAL_DURATION_MS = 100    # PROVISIONAL: how long a rung of the ladder
+                                  # runs on one start. The table keeps starting
+                                  # it again for as long as the error holds, so
+                                  # what this sets is how long the head coasts
+                                  # once there is no error to hold it — the
+                                  # object gone from the eye, nothing to say stop
+
 # --- the experiment: spec 005 ---
 OBJECT_START_DEG = 18.0           # where the object waits, left of straight ahead
 OBJECT_STILL_MS = 3000            # how long it stays there before moving

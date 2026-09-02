@@ -8,7 +8,7 @@ from .body.vehicle2 import Vehicle2
 from .clock import Clock
 from .control import GazeController, ProportionalController
 from .layers.sensory import (CorrelationReflex, LearningReflex, PostureReflex,
-                             Reflex)
+                             ProportionalReflex, Reflex)
 
 from .recorder import Recorder
 from .params import HEAD_EFFECTORS
@@ -74,6 +74,8 @@ def main():
     p.add_argument("--reflex", action="store_true", help="run Version B, the reflex")
     p.add_argument("--correlation", action="store_true",
                    help="run Version C, the reflex on a neuromorphic eye")
+    p.add_argument("--proportional", action="store_true",
+                   help="run Version F, the ground truth's controller built of cells")
     p.add_argument("--learn", type=float, metavar="SECONDS",
                    help="run Version D, taught for this long first")
     p.add_argument("--moving", action="store_true",
@@ -83,7 +85,8 @@ def main():
     vehicle_cls = Vehicle2 if args.neck else Vehicle1
     controller = (GazeController() if args.neck
                   else ProportionalController() if args.pid else None)
-    reflex = Reflex() if args.reflex else CorrelationReflex() if args.correlation else None
+    reflex = (Reflex() if args.reflex else CorrelationReflex() if args.correlation
+              else ProportionalReflex() if args.proportional else None)
     if args.neck and args.learn:
         eye_reflex, neck_reflex = taught_pair(args.learn, args.seed, args.object)
         print(f"taught {args.learn:g} s a layer\n")
@@ -112,7 +115,8 @@ def main():
     what = ('a PID on each joint' if args.neck
             else 'the ground truth' if args.pid else 'the reflex' if args.reflex
             else 'what it learnt' if args.learn
-            else 'the correlation cells' if args.correlation else 'babbling')
+            else 'the correlation cells' if args.correlation
+            else 'the controller in cells' if args.proportional else 'babbling')
     print(f"{args.seconds:g} s of {what}, "
           f"seed {args.seed}, object at {args.object:g} degrees\n")
     for source, n in sorted(rec.counts().items()):

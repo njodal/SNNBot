@@ -33,8 +33,11 @@ class Vehicle1:
         self.retina = Retina()
         self.actuators = {LEFT: Actuator(), RIGHT: Actuator()}
         self.proprioception = {LEFT: ProprioceptiveArray(), RIGHT: ProprioceptiveArray()}
+        # A reflex may bring its own ladder of effectors: Version F's is cut
+        # to a gain, where the others make do with the rungs spec 003 gives them.
+        ladder = getattr(reflex, "ladder", None) or EFFECTORS
         self.effectors = {
-            side: EffectorLayer(side, EFFECTORS, wired=wired, rng=rng)
+            side: EffectorLayer(side, ladder, wired=wired, rng=rng)
             for side in (LEFT, RIGHT)
         }
 

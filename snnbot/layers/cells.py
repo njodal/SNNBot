@@ -4,7 +4,12 @@ The delay cell of [spec 010]: one input, one output, the same spike again later.
 It works nothing out. What it is for depends entirely on where it is put — on the
 successor of a pair it makes an order out of two things that happened at once, on
 the predecessor it makes a coincidence out of two things that did not.
+
+The memory cell, which holds that something happened until it is undone, and
+the coincidence cell, which fires when enough of its inputs arrive together.
 """
+
+from ..params import REFRACTORY_MS
 
 
 class DelayCell:
@@ -66,3 +71,39 @@ class MemoryCell:
             self._next = t + self._period
             return True
         return False
+
+
+class CoincidenceCell:
+    """Fires when enough of its inputs arrive together.
+
+    Together has to mean *within a window*: two tonic sources at the same rate
+    fire out of step with each other, and a cell asking for the very same tick
+    would wait for ever. Each spike is spent once — the ones that made a
+    coincidence are cleared, so two sources at 50 Hz make the cell fire at 50 Hz
+    and not at every pairing of an old spike with a new one.
+
+    With two inputs `needed` is both of them, which is the only case built so
+    far. With more it is the majority, as spec 010 has it.
+    """
+
+    def __init__(self, inputs, window_ms, needed=None, refractory_ms=REFRACTORY_MS):
+        self.window_ms = window_ms
+        self.needed = inputs // 2 + 1 if needed is None else needed
+        self._refractory = refractory_ms
+        self._pending = [None] * inputs     # when each input last fired, unspent
+        self._last_fired = None
+
+    def update(self, t, arrived=()):
+        """Whether it fires now, having been given which inputs just did."""
+        for k in arrived:
+            self._pending[k] = t
+        for k, when in enumerate(self._pending):
+            if when is not None and t - when > self.window_ms:
+                self._pending[k] = None            # too old to go with anything
+        if self._last_fired is not None and t - self._last_fired < self._refractory:
+            return False
+        if sum(when is not None for when in self._pending) < self.needed:
+            return False
+        self._pending = [None] * len(self._pending)
+        self._last_fired = t
+        return True

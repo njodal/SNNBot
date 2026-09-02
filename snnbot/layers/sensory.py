@@ -14,9 +14,11 @@ nowhere to go from there.
 import math
 
 from ..events import Event, ON, OFF
-from .cells import DelayBank, MemoryCell
+from .cells import CoincidenceCell, DelayBank, MemoryCell
 from ..params import (BABBLE_EVERY_MS, CELL_ANGLE_DEG, CORRELATION_MAX_MS,
                       ACTING_COSTS, ARRIVING_PAYS, CENTRED_PAYS, CORRELATION_MIN_MS,
+                      COINCIDENCE_WINDOW_MS, HOLD_RATE_HZ, KP, MAX_TURN_RATE,
+                      PROPORTIONAL_DURATION_MS,
                       CRITIC_RATE, MEMORY_RATE_HZ,
                       DEG_PER_SPIKE,
                       EFFECTORS, LEAVING_COSTS, ORDER_DELAY_MS, VALUE_HALVES_IN_MS,
@@ -564,3 +566,105 @@ class PostureReflex(LearningReflex):
 
     def update(self, t, active_cell, sense, layers):
         return super().update(t, active_cell, self.arrivals.update(sense), layers)
+
+
+def proportional_ladder(k=KP, cells=EYE_CELLS, cell_angle=CELL_ANGLE_DEG,
+                        per_spike=DEG_PER_SPIKE, cap=MAX_TURN_RATE,
+                        duration_ms=PROPORTIONAL_DURATION_MS):
+    """The effectors of [spec 011]: one rung per whole cell of error, cut to `k`.
+
+    An effector at `f` Hz turns the head `f × degrees per spike` a second, so the
+    rung for an error of `d` cells is `k × d × cell / step`. Two things bend it.
+    A period has to be a whole number of ticks, so each rung is rounded to the
+    nearest millisecond. And Version A caps its rate at what the fastest effector
+    of spec 003 manages, so the rungs past that are that effector again.
+
+    Slowest first, so that `ladder[d - 1]` is the rung for `d`.
+    """
+    rungs = []
+    for d in range(1, cells):
+        hz = min(k * d * cell_angle / per_spike, cap / per_spike)
+        period = max(1, round(1000 / hz))
+        rungs.append((1000 / period, duration_ms))
+    return tuple(rungs)
+
+
+class ProportionalReflex:
+    """Version F of [spec 005]: the ground truth's controller, built of cells.
+
+    [Spec 011] in code. Nothing here reads a number: the object's cell is held
+    by a memory cell per cell of the eye, set by that cell going busy and cleared
+    by it going empty; the reference is another row of memory cells; a table of
+    coincidence cells fires where a row and a column are both firing; and every
+    cell of the table on the same diagonal reaches the same effector. The
+    subtraction is the table, the gain is the ladder, and the middle diagonal
+    reaches the stop of every effector.
+
+    The reference is an input and not a wire, which is what Version B has not
+    got: `refer` moves it, and the vehicle turns as if the object had.
+    """
+
+    def __init__(self, reference=None, cells=EYE_CELLS, k=KP, hold_hz=HOLD_RATE_HZ,
+                 window_ms=COINCIDENCE_WINDOW_MS):
+        self.cells = cells
+        self.ladder = proportional_ladder(k, cells)
+        self.holds = {i: MemoryCell(hold_hz) for i in range(1, cells + 1)}     # p
+        self.reference = {j: MemoryCell(hold_hz) for j in range(1, cells + 1)} # r
+        self.table = {(i, j): CoincidenceCell(2, window_ms)
+                      for i in range(1, cells + 1) for j in range(1, cells + 1)}
+        self.awake = None
+        self._refer_to = (cells + 1) // 2 if reference is None else reference
+        self._referred = False
+
+    def spent(self, spikes):
+        """Told what its effectors just fired. Only a vehicle that pays cares."""
+
+    def refer(self, t, level):
+        """Set the reference: one memory cell set, every other one cleared.
+
+        Whoever decides the reference does it with a spike into this row. Here
+        that is the observer, which is allowed to, and no cell of the vehicle
+        reads what it was set to.
+        """
+        for j, cell in self.reference.items():
+            cell.update(t, set_it=j == level, clear_it=j != level)
+        self._referred = True
+
+    def wire(self, d):
+        """Where a diagonal goes: (side, rung), or None for the middle one.
+
+        The cells of the eye are numbered from the left, so an object at a
+        higher cell than the reference sits to its right and the head has to
+        turn right to catch it.
+        """
+        if d == 0:
+            return None
+        return (RIGHT if d > 0 else LEFT), abs(d) - 1
+
+    def fired(self, t, eye):
+        """Which cells of the table fire now, given what the eye just said."""
+        if not self._referred:
+            self.refer(t, self._refer_to)
+        p = [i for i, cell in self.holds.items()
+             if cell.update(t, set_it=any(e.address[0] == i and e.p is ON for e in eye),
+                            clear_it=any(e.address[0] == i and e.p is OFF for e in eye))]
+        r = [j for j, cell in self.reference.items() if cell.update(t)]
+        return [(i, j) for (i, j), cell in self.table.items()
+                if cell.update(t, [k for k, hit in ((0, i in p), (1, j in r)) if hit])]
+
+    def drive(self, t, layers, target):
+        """Wake that rung and let no other run; with no rung, stop every one."""
+        for side, layer in layers.items():
+            for index, effector in enumerate(layer.effectors):
+                if (side, index) == target:
+                    if not effector.emitting:
+                        effector.start(t)
+                elif effector.emitting:
+                    effector.stop(t)
+
+    def update(self, t, active_cell, eye, layers):
+        fired = self.fired(t, eye)
+        for i, j in fired:
+            self.awake = self.wire(i - j)
+            self.drive(t, layers, self.awake)
+        return [Event(t, pair, ON) for pair in fired]

@@ -99,14 +99,19 @@ This cell have many inputs connections and fires if the mayority of the inputs a
 
 The same spikes arrive in both cases and the same number of them. Only their falling together makes any difference.
 
+*Together* has to mean within a **window**. Two tonic sources at the same rate fire out of step with each other, and a cell asking for the very same millisecond would wait for ever; the window is one period of the sources, 20 ms at the 50 Hz of a propioceptive array, and each spike is spent once, so that two sources at 50 Hz make the cell fire at 50 Hz and not at every pairing of an old spike with a new one. [Spec 011](011-p-controller.md) is where this came up, a table of these being what it uses to subtract one place code from another.
+
 ## The cells there are so far
-Three kinds, with less in common than one might expect.
+Six kinds, with less in common than one might expect.
 
 | | inputs | what it does |
 |---|--------|--------------|
 | **Effector** ([spec 003](003-neuromorphic-actuators.md)) | start, stop | emits at its own frequency for its own duration, and drives an actuator. Unwired, it fires by itself — the babbling of spec 002 |
 | **Relay** ([Version B](005-vehicle-1.md)) | one | fires when its input fires. The plainest cell there could be |
 | **Correlation** ([Version C](005-vehicle-1.md)) | predecessor, successor | fires only if the predecessor arrived first, and within a window. The pair `(i→j)` and the pair `(j→i)` are different cells, which is what makes it tell one direction from the other |
+| **Delay** ([Version C](005-vehicle-1.md)) | one | the same spike again, later. On a successor it makes an order, on a predecessor a coincidence |
+| **Memory** ([Version E](005-vehicle-1.md)) | set, clear | fires all the while between the one and the other. The only tonic thing in a vehicle made of changes |
+| **Coincidence** ([Version F](005-vehicle-1.md)) | many | fires when enough of them arrive within a window of each other. A table of these is a subtraction |
 
 ## What they have not got
 No membrane, no threshold, nothing accumulating. Not one of the cells built so far integrates anything: each is a small rule over the spikes at its inputs, and it either fires or does not.
