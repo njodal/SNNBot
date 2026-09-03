@@ -38,7 +38,7 @@ Design specifications live in [`spec/`](spec/).
   quick joint of short travel and a slow one of long travel, both pointing it.
 - [010 — Cells](spec/010-cells.md): what the layers are made of — what a cell
   reads, what it emits, and the three kinds built so far.
-- [011 — A P controller out of cells](spec/011-p-controller.md): the ground
+- [011 — A neuromorphic P controller](spec/011-neuromorphic-p-controller.md): the ground
   truth's `o = k × (p − r)` built from the cells there are — the subtraction a
   table of coincidence cells, the gain a ladder of effectors.
 

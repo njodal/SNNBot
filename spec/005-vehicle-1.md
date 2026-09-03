@@ -381,7 +381,7 @@ Which leaves the wire in place and the price at nothing. It is the right idea fo
 - **The delay is a real time, and transits are not.** Crossing a cell takes anywhere from 112 ms to over two seconds, twenty to one. One delay cannot match both ends, which is the same difficulty the correlation cells met — and it was answered there by having several, each with its own.
 
 ## Version F: the controller, in cells
-Version A built out of the cells of [spec 010](010-cells.md), to the design of [spec 011](011-p-controller.md). The same body, the same experiment, the same `Kp`; what changes is that nothing reads a number. It is not a reflex that behaves like the ground truth. It *is* the ground truth, with the arithmetic replaced by wiring.
+Version A built out of the cells of [spec 010](010-cells.md), to the design of [spec 011](011-neuromorphic-p-controller.md). The same body, the same experiment, the same `Kp`; what changes is that nothing reads a number. It is not a reflex that behaves like the ground truth. It *is* the ground truth, with the arithmetic replaced by wiring.
 
 ### What it is made of
 - **Nine memory cells** hold where the object is, one per cell of the eye, each set by that cell going busy and cleared by it going empty. They are what turns an eye that only reports change into a line that fires while a thing is true, and they fire at the 50 Hz of the propioceptive arrays.

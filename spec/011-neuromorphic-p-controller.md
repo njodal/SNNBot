@@ -1,4 +1,4 @@
-# 011 — A P controller out of cells
+# 011 — A neuromorphic P controller
 
 - **Status:** draft
 - **Date:** 2026-09-02
@@ -40,7 +40,7 @@ There are no values on any wire, so each term of the controller has to be *which
 
 ### The circuit
 
-![A P controller out of cells](../docs/images/p_controller.png)
+![A neuromorphic P controller](../docs/images/p_controller.png)
 
 Five levels are drawn; the real layers have nine or ten. Four parts.
 

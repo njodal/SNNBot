@@ -99,7 +99,7 @@ This cell have many inputs connections and fires if the mayority of the inputs a
 
 The same spikes arrive in both cases and the same number of them. Only their falling together makes any difference.
 
-*Together* has to mean within a **window**. Two tonic sources at the same rate fire out of step with each other, and a cell asking for the very same millisecond would wait for ever; the window is one period of the sources, 20 ms at the 50 Hz of a propioceptive array, and each spike is spent once, so that two sources at 50 Hz make the cell fire at 50 Hz and not at every pairing of an old spike with a new one. [Spec 011](011-p-controller.md) is where this came up, a table of these being what it uses to subtract one place code from another.
+*Together* has to mean within a **window**. Two tonic sources at the same rate fire out of step with each other, and a cell asking for the very same millisecond would wait for ever; the window is one period of the sources, 20 ms at the 50 Hz of a propioceptive array, and each spike is spent once, so that two sources at 50 Hz make the cell fire at 50 Hz and not at every pairing of an old spike with a new one. [Spec 011](011-neuromorphic-p-controller.md) is where this came up, a table of these being what it uses to subtract one place code from another.
 
 ## The cells there are so far
 Six kinds, with less in common than one might expect.
