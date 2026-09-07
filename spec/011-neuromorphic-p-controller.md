@@ -5,31 +5,24 @@
 - **Supersedes / Superseded by:** —
 
 ## Context
-The ground truth of [Vehicle 1](005-vehicle-1.md) is a proportional controller, and it is three symbols:
+A traditional Proportional Controller is defined by this formulas:
 
 ```
 e = p − r
 o = k × e
 ```
 
-A perception `p`, a reference `r`, and a gain `k` that turns the difference between them into an output `o`. Version A of spec 005 runs it on numbers: `p` is which cell of the eye is busy, `r` is the middle cell, `o` is a rate of turn in degrees per second.
+Where `p` is a perceived value, `r` the reference value, `k` a gain and `o` the output. The purpose of the controller is to modify `o` in order to `p` matches `r`.
 
-The cells of [spec 010](010-cells.md) have no numbers. A spike is a thing that happened and not a value that can be read, no cell integrates anything, and nothing anywhere adds. So the question this spec answers is how the same three symbols come out of cells that can only say *which* of them fired and *when*.
-
-Part of the answer is already in the repo. Version B of spec 005 is this controller with `r` wired in: cell 4 of the eye wakes the slowest effector on the left, cell 1 the fastest, and the middle cell wakes nothing. What it has not got is a reference that is an input. This spec is Version B with `r` made into one.
+The question is how can this kind of controller be implemented with the spiking cells used in this project.
 
 ## Goal
 A circuit of the cells there are — coincidence, memory, effector — that behaves as `o = k × (p − r)` on the body of spec 005, with `p` and `r` both arriving as spikes, and nothing added, subtracted or multiplied anywhere but in the wiring.
 
-## Scope
-In: the P term, on a plant that is a pure integrator, which is what every joint of Vehicles 1 and 2 is.
-
-Out: the I and D terms. Spec 005 argues they are zero on this plant, and spec 010 says why they could not be built anyway — both need a cell that accumulates, and none does.
-
 ## Design
 
 ### What each symbol becomes
-There are no values on any wire, so each term of the controller has to be *which* cell is firing. That is the place code spec 001 already uses for a level of contraction, and spec 003 for a speed.
+There are no values on any wire, so each term of the controller has to be *which* cell is firing. 
 
 | symbol | in Version A | here |
 |--------|--------------|------|
