@@ -30,6 +30,7 @@ General idea:
 ![A neuromorphic P controller](../docs/images/p_controller.png)
 
 Notes:
+-`r` comes from upper levels (can be fixed (allways the same value, or change over time)
 - the frequency of `r` defines the controller time interval
 - in case learning is required, this happens in changing the relationship of the matrix with the effectors
   
@@ -39,14 +40,12 @@ There are no values on any wire, so each term of the controller has to be *which
 
 | symbol | in Version A | here |
 |--------|--------------|------|
-| `p` | a number, which cell | one line per level, and the one that fires is the reading. A proprioceptor does this by itself, tonically at 50 Hz. The eye only reports change, so it needs a **memory cell** per cell of the eye, set by that cell's ON and cleared by its OFF, to hold *the object is in cell i* as a line that fires while it is true. The critic of Version E already keeps one |
+| `p` | a number, which cell | one line per level, and the one that fires is the reading. A proprioceptor does this by itself, tonically at 50 Hz. The eye only reports change, so it needs a **memory cell** per cell of the eye, set by that cell's ON and cleared by its OFF, to hold *the object is in cell i* as a line that fires while it is true|
 | `r` | a constant | the same, one line per level. A reference that never changes is not an input but a wire. One that does is a memory cell per level, set by whatever decides the reference |
 | `e` | a subtraction | which cell of a layer fires. Its sign is which side of a diagonal the cell sits on, its size is how far from the diagonal |
 | `o` | a rate of turn | which effector is emitting. The sign picks the actuator of the antagonist pair, the size picks the effector's frequency. **`k` lives in the ladder of frequencies** and in no cell at all |
 
-### The circuit
-
-![A neuromorphic P controller](../docs/images/p_controller.png)
+### Explanation
 
 Five levels are drawn; the real layers have nine or ten. Four parts.
 
