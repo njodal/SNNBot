@@ -29,7 +29,10 @@ General idea:
 
 ![A neuromorphic P controller](../docs/images/p_controller.png)
 
-
+Notes:
+- the frequency of `r` defines the controller time interval
+- in case learning is required, this happens in changing the relationship of the matrix with the effectors
+  
 
 ### What each symbol becomes
 There are no values on any wire, so each term of the controller has to be *which* cell is firing. 
