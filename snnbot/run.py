@@ -7,12 +7,12 @@ from .body.vehicle1 import Vehicle1
 from .body.vehicle2 import Vehicle2
 from .clock import Clock
 from .control import GazeController, ProportionalController
-from .layers.sensory import (CorrelationReflex, LearningReflex, PostureReflex,
-                             ProportionalReflex, Reflex)
+from .layers.sensory import (CorrelationReflex, GainReflex, LearningReflex,
+                             PostureReflex, ProportionalReflex, Reflex)
 
 from .recorder import Recorder
 from .params import HEAD_EFFECTORS
-from .world import World, experiment_path, wandering
+from .world import World, experiment_path, jumping, wandering
 
 
 def run(seconds=10.0, seed=1, object_deg=18.0, wired=False, controller=None,
@@ -76,6 +76,8 @@ def main():
                    help="run Version C, the reflex on a neuromorphic eye")
     p.add_argument("--proportional", action="store_true",
                    help="run Version F, the ground truth's controller built of cells")
+    p.add_argument("--gain", type=float, metavar="SECONDS",
+                   help="run Version G, Version F finding its own gain, taught for this long first")
     p.add_argument("--learn", type=float, metavar="SECONDS",
                    help="run Version D, taught for this long first")
     p.add_argument("--moving", action="store_true",
@@ -101,6 +103,19 @@ def main():
               f"neck at {vehicle.neck_deg:+.1f}, gaze at {vehicle.gaze_deg:+.1f}, "
               f"object seen by cell {vehicle.retina.busy_cell()}")
         return
+    if args.gain:
+        # Against an object that jumps: one that wanders is never far from an
+        # eye that keeps up with it, and there is no gain to learn on an error
+        # that never grows past a cell.
+        reflex = GainReflex(random.Random(args.seed))
+        run(args.gain, args.seed, args.object, reflex=reflex,
+            path=jumping(random.Random(args.seed + 7)))
+        frozen(reflex)
+        print(f"taught for {args.gain:g} s; the gain it settled on, by cells of error:")
+        for d in (1, 2, 3, 4):
+            print(f"  {d} cell{'s' if d > 1 else ''}: {reflex.gain(-d):.1f} /s on the left, "
+                  f"{reflex.gain(d):.1f} /s on the right")
+        print()
     if args.learn:
         # The two go together: cells that read a speed, and an object that has
         # one to read. Either alone leaves the vehicle worse off than neither.
@@ -116,7 +131,8 @@ def main():
             else 'the ground truth' if args.pid else 'the reflex' if args.reflex
             else 'what it learnt' if args.learn
             else 'the correlation cells' if args.correlation
-            else 'the controller in cells' if args.proportional else 'babbling')
+            else 'the controller in cells' if args.proportional
+            else 'the gain it found' if args.gain else 'babbling')
     print(f"{args.seconds:g} s of {what}, "
           f"seed {args.seed}, object at {args.object:g} degrees\n")
     for source, n in sorted(rec.counts().items()):

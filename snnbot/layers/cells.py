@@ -93,6 +93,11 @@ class CoincidenceCell:
         self._pending = [None] * inputs     # when each input last fired, unspent
         self._last_fired = None
 
+    def reset(self):
+        """Nothing pending and nothing just fired: as it was before any time passed."""
+        self._pending = [None] * len(self._pending)
+        self._last_fired = None
+
     def update(self, t, arrived=()):
         """Whether it fires now, having been given which inputs just did."""
         for k in arrived:

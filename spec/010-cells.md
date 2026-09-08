@@ -100,7 +100,7 @@ It is very nearly the effector cell, and the difference is worth a table:
 | unwired | babbles | has no such state |
 | its output goes to | an actuator | whatever wants to be told a state holds |
 
-So a memory cell is an effector cell with no duration and no babbling, and an effector cell is a memory cell that forgets by itself after a while. What the name *effector* says is not the rule but where the output goes. [Spec 011](011-neuromorphic-p-controller.md) uses two rows of them for the two things it compares, and it is the same cell in both.
+So a memory cell is very nearly an effector cell with no duration and no babbling, and an effector cell very nearly a memory cell that forgets by itself after a while. Whether that makes them one cell is the open question at the end of this spec, and for now they are two: the rule is alike, and what each is for is not. [Spec 011](011-neuromorphic-p-controller.md) uses two rows of memory cells for the two things it compares.
 
 Its output is the only tonic thing in a project made of changes, and that is what it is for. An eye that reports only what altered can say a thing arrived and can say it left, but never that it is still where it was — and anything that has to be told a state of affairs holds, rather than that it began, has nowhere else to get it. The critic of [Version E](005-vehicle-1.md) is the first to need one: without it, arriving somewhere good was only ever the prelude to leaving, and every place the vehicle could be came out worthless.
 

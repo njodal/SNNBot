@@ -73,3 +73,26 @@ def wandering(rng, start_deg=OBJECT_START_DEG, span=(-35.0, 35.0),
         began, was, goes, over = legs[max(i, 0)]
         return was + (goes - was) * min((t - began) / over, 1.0)
     return where
+
+
+def jumping(rng, start_deg=OBJECT_START_DEG, span=(-35.0, 35.0), dwell_ms=(500, 1500),
+            total_ms=1_200_000):
+    """An object that is somewhere, and then somewhere else: it sits still for a
+    while and then jumps, with nothing in between.
+
+    For teaching a vehicle what a gain is. An object that wanders is never far
+    from an eye that keeps up with it, so the error never grows past a cell and
+    every rung of a ladder closes a cell's worth in a spike or two. An object
+    that jumps hands the vehicle an error of several cells at once, and how fast
+    it is closed is then the vehicle's doing and nothing else's.
+    """
+    legs, t, deg = [], 0.0, start_deg
+    while t < total_ms:
+        legs.append((t, deg))
+        t += rng.uniform(*dwell_ms)
+        deg = rng.uniform(*span)
+    starts = [leg[0] for leg in legs]
+
+    def where(t):
+        return legs[max(bisect.bisect_right(starts, t) - 1, 0)][1]
+    return where

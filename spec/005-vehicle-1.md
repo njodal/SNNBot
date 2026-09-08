@@ -422,3 +422,47 @@ Moving the reference does what spec 011 says it should. With the object dead ahe
 - A rung restarted by the table begins with a spike, so a rung that keeps being restarted runs a little faster than its frequency says. The effect is inside the 1.45 degrees above, and it goes away if a second `start` while emitting extends the duration instead of being ignored — the open question of spec 003, which this vehicle now has a reason to want settled.
 - The reference is set by the observer. The row is there for a cortex to set, and nothing yet does.
 - The 100 ms a rung runs for is the only number in the vehicle that is neither the gain nor the body. Shorter, the head stops sooner when the object is lost and the rungs lose more of their rate to the gaps between runs; longer, the other way round. It has not been explored.
+
+## Version G: it finds its own gain
+Version F is handed `Kp`. Every diagonal of its table reaches one rung of the ladder by a wire, and which rung is the gain: `f(d) = Kp × d × cell / step`, with `Kp = 2` because Version A has it so. This version is handed the ladder and not the wiring. A diagonal reaches every rung on its side through a weight, what runs is the rung with the most weight behind it or one being tried out, and which rung an error of `d` cells ends up waking is what `Kp` was.
+
+The side is not learnt. The sign of a diagonal says which way the object is, and there is nothing to find out about that. What is left to find is a function of one variable, more error to more speed or not, which is a great deal less than Version D had to find.
+
+### What it learns from
+The table. Every change of diagonal says, by how far from the middle the new one sits against the old, whether the error got smaller or bigger — an improvement in cells, read off the wiring the way Version D read its partition, and needing nobody to write one down. The credit goes to the rung that was running, by how much of its eligibility is left, so a rung that closed a cell quickly earns more of it than one that closed it slowly. And a weight is what its rung has lately earned rather than everything it ever has, so the best rung stands out instead of every good one piling up to the same ceiling.
+
+Two things the credit does not do. It does not blame a rung for what the object does after the error has reached zero, since nothing is running then: arriving clears the eligibility, and leaving is the object's own doing. And it does not run to `Kp` — there is nothing in it that says two, or any other number. Whatever gain comes out is what the credit found worth having.
+
+### What it has to be taught against
+Not the object that wanders, which taught Version D what a speed is. Version F's table sees a still object, so this vehicle keeps up with a wandering one from the start, and keeping up means the error never grows past a cell. A one-cell error is the object a hair over the edge of the middle cell, and every rung of the ladder closes that in a spike or two: taught that way the vehicle learns, correctly, that at one cell of error every rung is as good as every other, and nothing at all about the rest.
+
+So it is taught against **an object that jumps** — still for half a second to a second and a half, then somewhere else within the eye's reach, with nothing in between. Each jump is an error of several cells handed over whole, and how fast it is closed is then the vehicle's doing and nothing else's.
+
+### What happened
+Over four seeds, taught four minutes each, all four settle on the same thing: **the fastest rung for every error.**
+
+| error | `Kp` it was given | `Kp` it found, four seeds | the most the body allows |
+|-------|-------------------|---------------------------|--------------------------|
+| 1 cell | 2 /s | 8.1 to 8.9 /s | 8.9 /s |
+| 2 cells | 2 /s | 4.0 to 4.4 /s | 4.4 /s |
+| 3 cells | 2 /s | 2.7 to 3.0 /s | 3.0 /s |
+| 4 cells | 2 /s | 2.2 /s | 2.2 /s |
+
+The gain it finds is not a number but the cap: at every error the rung it picks is the 100 Hz one, or the one beside it, and *the gain falls with the error* only because a rate that cannot go above 80 degrees a second is a smaller multiple of a big error than of a small one. Which is to say it has learnt a bang-bang controller with a brake, and on this body that is the right answer.
+
+| | catches an object at the far edge in | holds the object in the middle |
+|---|---|---|
+| Version A, `Kp = 2` | 980 ms | 12.37 s of 15 |
+| Version F, `Kp = 2` in cells | 924 ms | 14.17 s |
+| **Version G, the gain it found** | **424 to 459 ms** | 14.52 to 14.56 s |
+
+Spec 005 says why, in the section that argues Version A is really a P controller: on a pure integrator proportional feedback never overshoots, and the only limit on the gain is the interval it acts at, `Kp × interval < 1`. For Version A at a millisecond that allows a gain of a thousand; for this vehicle, whose table decides fifty times a second, it allows fifty. The 8.9 the body caps it at is nowhere near either. `Kp = 2` was picked so that the eye would take about half a second to catch a thing, which is a choice about how the vehicle should look and not about how well it should do — and a vehicle paid for doing well, given the choice, does not make it.
+
+![Version G running the experiment, after four minutes of being taught](../docs/images/version_g.gif)
+
+Sixty seconds is not enough to say this. Taught a minute, the seeds disagree with each other by a factor of four on some errors, one of them settling on the slowest rung for the largest error, and they still catch the far object in 441 to 660 ms, since even a wrong answer on one diagonal is a right one on the next. Four minutes is where they agree.
+
+### Open questions
+- The best gain being the biggest is a fact about a plant with no inertia and a brake at zero error. A body whose head kept moving after the spikes stopped would overshoot at this gain, and the same learner would have to find something smaller. That is the vehicle this version wants to be tried on.
+- The credit favours a fast rung by the eligibility it has left, and how much it favours it is the eligibility's fade. A longer fade is a learner more indifferent to speed. What the fade should be is a question about what the vehicle is for.
+- A weight here is what a rung has lately earned. Version D's is what it has ever earned, capped. The two learn different things from the same credit, and which is the right notion of a weight is not settled.

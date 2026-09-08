@@ -13,11 +13,11 @@ from PIL import Image, ImageDraw, ImageFont
 from ..body.vehicle1 import LEFT, RIGHT, Vehicle1
 from ..clock import Clock
 from ..control import ProportionalController
-from ..layers.sensory import (CorrelationReflex, LearningReflex, ProportionalReflex,
-                              Reflex, ValueReflex)
+from ..layers.sensory import (CorrelationReflex, GainReflex, LearningReflex,
+                              ProportionalReflex, Reflex, ValueReflex)
 from ..events import ON
 from ..params import CELL_ANGLE_DEG, EYE_CELLS, TICK_MS
-from ..world import World, experiment_path, wandering
+from ..world import World, experiment_path, jumping, wandering
 
 W, H = 760, 760
 CELL = 34
@@ -73,7 +73,8 @@ NAMES = {"ProportionalController": "Version A: ground truth",
          "CorrelationReflex": "Version C: correlation cells",
          "LearningReflex": "Version D: what it learnt",
          "ValueReflex": "Version E: what it worked out",
-         "ProportionalReflex": "Version F: the controller in cells"}
+         "ProportionalReflex": "Version F: the controller in cells",
+         "GainReflex": "Version G: the gain it found"}
 
 
 def _title(controller, reflex):
@@ -215,6 +216,20 @@ def _taught(a, cls=LearningReflex):
     return reflex
 
 
+def _gain(a):
+    """Version G, taught against an object that jumps before anyone watches."""
+    from ..body.vehicle1 import Vehicle1
+    from ..clock import Clock
+    reflex = GainReflex(random.Random(a.seed))
+    world = World(object_deg=a.object, path=jumping(random.Random(a.seed + 7)))
+    v = Vehicle1(world, rng=random.Random(a.seed), reflex=reflex)
+    for t in Clock().times(int(a.gain * 1000)):
+        world.update(t)
+        v.step(t)
+    reflex.learning, reflex.explore = False, 0.0
+    return reflex
+
+
 def learning(path="learning.gif", train_s=240.0, windows=((0, 8), (116, 124), (232, 240)),
              seed=1, object_deg=18.0, every=100):
     """Watch it being taught: the same eight seconds early, halfway and at the end.
@@ -262,6 +277,8 @@ if __name__ == "__main__":
     p.add_argument("--correlation", action="store_true", help="Version C")
     p.add_argument("--proportional", action="store_true",
                    help="Version F, the ground truth's controller in cells")
+    p.add_argument("--gain", type=float, metavar="SECONDS",
+                   help="Version G, taught its gain for this long first")
     p.add_argument("--learn", type=float, metavar="SECONDS",
                    help="Version D, taught for this long first")
     p.add_argument("--value", type=float, metavar="SECONDS",
@@ -275,5 +292,6 @@ if __name__ == "__main__":
                              _taught(a) if a.learn else
                              Reflex() if a.reflex else
                              CorrelationReflex() if a.correlation else
-                             ProportionalReflex() if a.proportional else None)
+                             ProportionalReflex() if a.proportional else
+                             _gain(a) if a.gain else None)
     print(f"{n} frames -> {path}")

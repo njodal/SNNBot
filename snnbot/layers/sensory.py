@@ -619,6 +619,27 @@ class ProportionalReflex:
     def spent(self, spikes):
         """Told what its effectors just fired. Only a vehicle that pays cares."""
 
+    def forget(self):
+        """Hold nothing about where the object is. A body calls this at birth.
+
+        The memory cells are the one state a reflex carries from a life to the
+        next, and a cell still holding a place from a body that no longer exists
+        would fire alongside the one the new eye sets, two readings of `p` at
+        once. The reference is kept: it is not something the eye told it.
+        """
+        for cell in self.holds.values():
+            cell.update(0, clear_it=True)
+        # The reference is kept, but its cell keeps time from the old life and
+        # would wait for a moment that never comes: set it again in the new one.
+        for cell in self.reference.values():
+            cell.update(0, clear_it=True)
+        self._referred = False
+        # And the table keeps time too: a cell that fired late in the old life
+        # would take itself to be in its refractory period for most of the new.
+        for cell in self.table.values():
+            cell.reset()
+        self.awake = None
+
     def refer(self, t, level):
         """Set the reference: one memory cell set, every other one cleared.
 
@@ -628,7 +649,7 @@ class ProportionalReflex:
         """
         for j, cell in self.reference.items():
             cell.update(t, set_it=j == level, clear_it=j != level)
-        self._referred = True
+        self._refer_to, self._referred = level, True
 
     def wire(self, d):
         """Where a diagonal goes: (side, rung), or None for the middle one.
@@ -666,5 +687,100 @@ class ProportionalReflex:
         fired = self.fired(t, eye)
         for i, j in fired:
             self.awake = self.wire(i - j)
+            self.drive(t, layers, self.awake)
+        return [Event(t, pair, ON) for pair in fired]
+
+
+class GainReflex(ProportionalReflex):
+    """Version G of [spec 005]: the ladder is given, which rung each error wakes is not.
+
+    Everything Version F has, with one thing taken away. A diagonal of the table
+    no longer reaches one rung of the ladder by a wire: it reaches every rung on
+    its side through a weight, and what runs is the rung with the most weight
+    behind it, or one tried out. Which rung an error of `d` cells wakes is what
+    `Kp` was in Version F, so this is a vehicle finding its own gain.
+
+    The side is not learnt. The sign of the diagonal says which way the object
+    is, and there is nothing to find out about that.
+
+    What it learns from is the table itself. Every change of diagonal says, by
+    how far from the middle the new one is against the old, whether the error
+    got smaller or bigger — an improvement in cells, no partition needed and
+    nothing handed to it. The credit goes to the rung that was running, by how
+    much of its eligibility is left, so a rung that closed a cell quickly earns
+    more than one that closed it slowly. A weight is what its rung has lately
+    earned rather than everything it has ever earned, so the best rung stands
+    out instead of every good one piling up to the same ceiling.
+    """
+
+    def __init__(self, rng, lr=LEARNING_RATE, eligibility_ms=ELIGIBILITY_MS,
+                 explore=EXPLORE, **kw):
+        super().__init__(**kw)
+        self.rng, self.lr, self.explore = rng, lr, explore
+        self.learning = True
+        self._eligibility_ms = eligibility_ms
+        self.rungs = range(len(self.ladder))
+        self.weights = {d: {rung: 0.0 for rung in self.rungs}
+                        for d in range(-(self.cells - 1), self.cells) if d != 0}
+        self.tried = {d: set() for d in self.weights}
+        self._eligible = {}             # (d, rung) -> when it was used
+        self._error = None              # the diagonal that fired last
+
+    def forget(self):
+        super().forget()
+        self._error, self._eligible = None, {}
+
+    def choose(self, d):
+        """The rung with the most weight behind it for this error, or one to try.
+
+        Untried before tried, while it is learning: a rung nobody has run cannot
+        be known to be worse than one that has. Once every rung has been tried
+        it goes with the best, except for the times it explores. Done learning,
+        what it has is what it uses, tried or not.
+        """
+        untried = [rung for rung in self.rungs if rung not in self.tried[d]]
+        if untried and self.learning:
+            return self.rng.choice(untried)
+        if self.rng.random() < self.explore:
+            return self.rng.choice(list(self.rungs))
+        best = max(self.weights[d].values())
+        return self.rng.choice([r for r, w in self.weights[d].items() if w == best])
+
+    def reinforce(self, t, reward):
+        """Move what is eligible toward what it just earned, by what is left of it."""
+        if not reward or not self.learning:
+            return
+        for (d, rung), used in list(self._eligible.items()):
+            left = 1 - (t - used) / self._eligibility_ms
+            if left <= 0:
+                del self._eligible[(d, rung)]
+                continue
+            w = self.weights[d][rung]
+            self.weights[d][rung] = w + self.lr * (reward * left - w)
+
+    def gain(self, d, cell_angle=CELL_ANGLE_DEG, per_spike=DEG_PER_SPIKE):
+        """The `Kp` it has settled on for an error of `d` cells, in 1/s."""
+        best = max(self.weights[d].values())
+        rung = max(r for r, w in self.weights[d].items() if w == best)
+        return self.ladder[rung][0] * per_spike / (abs(d) * cell_angle)
+
+    def update(self, t, active_cell, eye, layers):
+        fired = self.fired(t, eye)
+        for i, j in fired:
+            d = i - j
+            if d != self._error:
+                if self._error is not None:
+                    self.reinforce(t, abs(self._error) - abs(d))   # smaller is better
+                self._error = d
+                if d == 0:
+                    # Nothing runs from here, so nothing is left to blame for
+                    # what the object does next: leaving is the object's doing.
+                    self.awake, self._eligible = None, {}
+                else:
+                    side, _ = self.wire(d)
+                    rung = self.choose(d)
+                    self.tried[d].add(rung)
+                    self._eligible[(d, rung)] = t
+                    self.awake = (side, rung)
             self.drive(t, layers, self.awake)
         return [Event(t, pair, ON) for pair in fired]

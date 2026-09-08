@@ -29,6 +29,8 @@ class Vehicle1:
         self.reflex = reflex
         self._last_eye = []
         wired = wired or reflex is not None    # a reflex needs something to spike
+        if hasattr(reflex, "forget"):
+            reflex.forget()                     # a new body, nothing yet seen
         self._last_t = None
         self.retina = Retina()
         self.actuators = {LEFT: Actuator(), RIGHT: Actuator()}
