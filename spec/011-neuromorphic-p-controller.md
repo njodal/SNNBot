@@ -17,9 +17,19 @@ Where `p` is a perceived value, `r` the reference value, `k` a gain and `o` the 
 The question is how can this kind of controller be implemented with the spiking cells used in this project.
 
 ## Goal
-A circuit of the cells there are — coincidence, memory, effector — that behaves as `o = k × (p − r)` on the body of spec 005, with `p` and `r` both arriving as spikes, and nothing added, subtracted or multiplied anywhere but in the wiring.
+A circuit of the existing cells (coincidence, memory, effector) that behaves as `o = k × (p − r)`, with `p` and `r` both arriving as spikes, and nothing added, subtracted or multiplied anywhere but in the wiring.
 
 ## Design
+
+General idea: 
+- encode `r` as a set of effector cells (where only one is ON) representing the goal (in Vehicle 1 es cell 5 of the eye)
+- encode `p` as a set of coincidence cells (where only one is ON) representing where is the object perceived in the eye
+- a matrix of coincidence cells relating `r` with `p`, so its representing `e`
+- a connection with this cells to the effectors in order to produce `o`
+
+![A neuromorphic P controller](../docs/images/p_controller.png)
+
+
 
 ### What each symbol becomes
 There are no values on any wire, so each term of the controller has to be *which* cell is firing. 
