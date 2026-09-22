@@ -19,5 +19,7 @@ Design specifications for SNNBot.
 | 004 | [Simulator](004-simulator.md)                                | draft  |
 | 005 | [Vehicle 1](005-vehicle-1.md)                                | draft  |
 | 006 | [Vehicle 2](006-vehicle-2.md)                                | draft  |
+| 007 | [Vehicle 3](007-vehicle-3.md)                                | draft  |
 | 010 | [Cells](010-cells.md)                                        | draft  |
 | 011 | [A neuromorphic P controller](011-neuromorphic-p-controller.md) | draft  |
+| 012 | [A joint primitive](012-joint-primitive.md)                 | draft  |

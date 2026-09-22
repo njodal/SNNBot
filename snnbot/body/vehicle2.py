@@ -113,8 +113,16 @@ class Vehicle2:
         self.vor = Gain(NECK_DEG_PER_UNIT / HEAD_DEG_PER_UNIT) if vor else None
         self._last_t = None
         self.retina = Retina()
-        self.head = Joint(HEAD, HEAD_DEG_PER_UNIT, HEAD_EFFECTORS, wired=wired, rng=rng)
-        self.neck = Joint(NECK, NECK_DEG_PER_UNIT, NECK_EFFECTORS, wired=wired, rng=rng)
+        # A layer may bring its own ladder of effectors, as Version F of spec 005
+        # does: the controller of spec 011 needs one rung per whole cell of error,
+        # cut to its gain, where spec 003 gives four rungs picked for something
+        # else. A joint whose layer has nothing to say keeps the ladder of spec 003.
+        self.head = Joint(HEAD, HEAD_DEG_PER_UNIT,
+                          getattr(eye_reflex, "ladder", None) or HEAD_EFFECTORS,
+                          wired=wired, rng=rng)
+        self.neck = Joint(NECK, NECK_DEG_PER_UNIT,
+                          getattr(neck_reflex, "ladder", None) or NECK_EFFECTORS,
+                          wired=wired, rng=rng)
         self.joints = (self.head, self.neck)
 
     @property

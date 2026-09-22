@@ -36,9 +36,15 @@ Design specifications live in [`spec/`](spec/).
   driven, from a plain controller to a wiring it finds for itself.
 - [006 — Vehicle 2](spec/006-vehicle-2.md): the same eye carried on a neck — a
   quick joint of short travel and a slow one of long travel, both pointing it.
+- [007 — Vehicle 3](spec/007-vehicle-3.md): an e-puck — two wheels that were
+  already driven by pulses, a ring of proximity sensors, and the first world
+  with a floor to cross.
 - [010 — Cells](spec/010-cells.md): what the layers are made of — what a cell
   reads, what it emits, and the three kinds built so far.
 - [011 — A neuromorphic P controller](spec/011-neuromorphic-p-controller.md): the ground
   truth's `o = k × (p − r)` built from the cells there are — the subtraction a
   table of coincidence cells, the gain a ladder of effectors.
+- [012 — A joint primitive](spec/012-joint-primitive.md): that controller cut into
+  one copy per actuator, built with no number about a joint, the same on every
+  joint of every vehicle — and left to find its own ladder.
 

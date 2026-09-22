@@ -305,6 +305,56 @@ Those durations were chosen to match how long a human head turn takes, and the f
 
 Twelve seconds is what a neck that never moves scores, so the task comes back almost entirely — and the eye is left further out. It is the same exchange as the VOR one seen from the other end: with nothing cancelling the gaze a neck movement causes, every degree the neck buys back for the eye is paid for in gaze, and **how far one command moves the neck is the exchange rate**. Neither end of it is free, and this vehicle has no way of pricing either.
 
+## Version C: the same two loops, in cells
+
+Version A again, with the controllers replaced by the circuit of [spec 011](011-neuromorphic-p-controller.md) and nothing else touched. The body is the same, the reflex arc is Version B's, and no number is read anywhere: what arrives at every cell is spikes and what leaves is spikes.
+
+**The eye's is Version F of [spec 005](005-vehicle-1.md) on this body.** A memory cell per cell of the retina holding where the object is, a row of memory cells for the reference set to the middle cell, a table of coincidence cells that fires where a row and a column both do, and every cell on the same diagonal reaching the same rung of a ladder cut to `Kp` — here in the head's degrees per spike rather than Vehicle 1's.
+
+**The neck's is the same circuit, three things different**, and each of them is something the spec 011 design already allows for rather than an addition to it.
+
+*It needs no memory row.* The eye reports only change, so where the object is has to be held; the propioceptive array of [spec 001](001-neuromorphic-sensors.md) keeps saying where the joint is, at 50 Hz, for as long as it is there. So `p` is the array itself and the neck's controller is a whole row of cells smaller:
+
+| | `p` | `r` | the table | rungs |
+|---|---|---|---|---|
+| the eye's | 9 memory cells | 9 | 81 coincidence cells | 8 |
+| the neck's | none | 10 | 100 | 9 |
+
+*Its reference is not a middle.* Ten levels have no middle one, so the reference is the level a centred head rests in — the sixth, the rest contraction of 50 falling on its lower edge. The dead zone that follows is lopsided for the same reason, and so is everything quantised by an array with an even number of levels.
+
+*Its diagonals run the other way round.* The sign of the circuit is fixed by what its rows are wired to. Reading the eye, a cell higher than the reference is an object to the right and the head goes right. Reading the head's **left** actuator, a level higher than the reference is a head turned *left* — and a neck answering that has to go left as well. Nothing about the wiring is clever here: the sign lives in which array the layer reaches.
+
+### The subtraction has to go somewhere
+
+Version A's neck acts on `Kr × how far the eye is outside its comfortable range` — the error with the range taken off it, so that the neck starts from nothing at the edge instead of lurching. Spec 011 says a dead zone is the diagonals near the middle reaching nothing, and that is true but not the whole of it: **wiring a diagonal to nothing says when to move, not how much.** Left at that, the first diagonal outside the range wakes the rung for its whole error and the neck lurches exactly as Version A took care not to.
+
+There is nowhere in this circuit for a subtraction to live except the ladder, so that is where it goes: the rung for a diagonal `d` is `k × (d − dead)` rather than `k × d`. It costs nothing — a ladder is a free choice of nine numbers — and it is the second time in this project that arithmetic has turned out to be a property of the effectors rather than of any cell.
+
+| an object standing at 36°, five seconds | catches in | eye / neck at 5 s | both joints travel |
+|---|---|---|---|
+| Version A | 979 ms | 20.1° / 11.5° | 49° |
+| **Version C** | 1014 ms | 22.5° / 9.6° | 50° |
+| Version C with the subtraction left out | 1014 ms | 17.1° / 16.0° | 64° |
+
+### What it comes to
+
+![Version C: the same two loops, in cells](../docs/images/vehicle2_c.gif)
+
+The same eleven seconds as Version A's picture — an object standing at 36 degrees, then sliding away to the right — so that the two can be laid side by side. The traces are a staircase now rather than a curve, which is the ladder: a rung is a rate and there are nine of them.
+
+The row worth looking at is the neck's effectors, because it is nearly empty. **The neck fires six spikes in the eleven seconds**, all of them while the object is being caught; after that the eye holds 22 degrees of the gaze, which is inside the range the neck is not wired to answer, and the neck does nothing at all. That is the eye-should-do-the-moving of Version A arriving as a fact about how often something spikes, which is the only currency this vehicle has.
+
+Over the experiment of spec 005, against the ground truth it was built from:
+
+| | in the middle cell | both joints travel | the gaze against Version A's |
+|---|---|---|---|
+| Version A | 12.96 s of 15 | 63° | — |
+| **Version C** | **14.05 s** | 61° | never more than 1.6° apart |
+
+It matches Version A's aim to well within the cell spec 011 asks for, at the same cost in movement, and it **holds the object longer than the thing it was copied from**. A rung runs for its duration and no shorter, so it carries the object into the middle cell instead of stopping at the edge of it, and the chatter Version A has at every cell boundary is not there to be had. The cell-built controller is not a degraded copy of the number-built one on this body.
+
+One thing the table above does not show, and it is the reflex arc's doing. Leaving the subtraction out changes the posture — the neck ends up doing half again as much — and changes the travel by a quarter, and yet the **gaze is the same to 1.6 degrees either way**. With the arc cancelling what the neck does to the aim, a wrong law in the neck costs bearing and effort and cannot cost accuracy. Which is worth knowing before any of it is handed over to something that learns.
+
 ## Acceptance criteria
 
 - [ ] The body has four actuators in two antagonist pairs, and four propioceptive sensors, one per actuator.
@@ -325,6 +375,9 @@ Twelve seconds is what a neck that never moves scores, so the task comes back al
 - [ ] A sensor that goes on reporting the same level produces one arrival, not one per spike.
 - [ ] Taught against a ground truth eye, most of the cells the neck's layer learns choose the side that brings the eye back towards the middle of its range.
 - [ ] The eye's layer is frozen before the neck's is taught, and nothing teaches both at once.
+- [ ] Version C reads no number anywhere, and its gaze stays within one cell of the eye of Version A's throughout the experiment of spec 005.
+- [ ] Its neck's controller has no memory row, its reference is the level a centred head rests in, and its diagonals reach the side the head is already turned to.
+- [ ] Its neck's ladder answers the error less the comfortable range, not the whole error.
 
 ## Open questions
 

@@ -15,7 +15,7 @@ from .animate import F, FS, FT, _zigzag
 from ..body.vehicle2 import HEAD, LEFT, NECK, RIGHT, Vehicle2
 from ..clock import Clock
 from ..control import GazeController, RecentringController
-from ..layers.sensory import PostureReflex
+from ..layers.sensory import PostureReflex, gaze_reflexes
 from ..events import ON
 from ..params import (CELL_ANGLE_DEG, EYE_CELLS, OBJECT_RATE_DEG_S, PROP_SENSORS,
                       TICK_MS)
@@ -46,6 +46,11 @@ ROWS = ((535, 567, "eye", EYE_CELLS), (577, 601, "head sense", PROP_SENSORS),
 ROWS_B = ((512, 540, "eye", EYE_CELLS), (550, 578, "head sense", PROP_SENSORS),
           (588, 612, "neck cells", PROP_SENSORS), (622, 634, "neck effectors", 2),
           (644, 656, "eye effectors", 2))
+# Version C has no cells worth a row of their own — its tables fire at 50 Hz
+# whatever happens — so what is worth watching is the two outputs and the arc.
+ROWS_C = ((512, 540, "eye", EYE_CELLS), (550, 578, "head sense", PROP_SENSORS),
+          (590, 604, "eye effectors", 2), (614, 628, "neck effectors", 2),
+          (638, 652, "the arc", 2))
 RASTER_L, RASTER_R = 170, W - 20
 PLOT_R = W - 80          # the traces stop short of the edge, to be named there
 WINDOW_MS = 3000
@@ -258,6 +263,48 @@ def animate_b(path="vehicle2_b.gif", seconds=11.0, seed=1, object_deg=36.0, ever
     return path, len(images)
 
 
+def animate_c(path="vehicle2_c.gif", seconds=11.0, seed=1, object_deg=36.0, every=100,
+              right=5.0, note=None, moving=False):
+    """Version C: Version A's two loops, built of the cells of spec 011."""
+    eye, neck = gaze_reflexes()
+    where = (experiment_path(object_deg) if moving else
+             standing_then_right(object_deg, right * 1000) if right else None)
+    world = World(object_deg=object_deg, path=where)
+    vehicle = Vehicle2(world, rng=random.Random(seed), eye_reflex=eye,
+                       neck_reflex=neck, vor=True)
+    raster, frames, trace = deque(maxlen=8000), [], []
+    total = int(seconds * 1000)
+    peak, low = 1.0, 0.0
+    side_at = {LEFT: 1, RIGHT: 2}
+    for t in Clock().times(total):
+        world.update(t)
+        fired = vehicle.step(t)
+        for e in fired.get("retina", ()):
+            raster.append((t, 0, e.address[0], e.p is ON))
+        for e in fired.get(f"proprioception.{HEAD}.{LEFT}", ()):
+            if e.p is ON:
+                raster.append((t, 1, e.address[0], True))
+        for row, joint in ((2, HEAD), (3, NECK)):
+            for side in (LEFT, RIGHT):
+                for _ in fired.get(f"effector.{joint}.{side}", ()):
+                    raster.append((t, row, side_at[side], True))
+        for e in fired.get("vor", ()):
+            raster.append((t, 4, side_at[e.address[0]], True))
+        angles = {"eye": vehicle.head_deg, "neck": vehicle.neck_deg,
+                  "gaze": vehicle.gaze_deg}
+        peak, low = max(peak, *angles.values()), min(low, *angles.values())
+        trace.append((t, angles))
+        if t % (every * TICK_MS) == 0:
+            frames.append((t, vehicle.head_deg, vehicle.neck_deg,
+                           vehicle.retina.busy_cell(), world.object_deg, list(raster)))
+    scale = (total, math.floor(low / 5) * 5, math.ceil(peak / 5) * 5)
+    images = [frame(*f, trace, scale, title="Version C: a P controller in cells, twice",
+                    note=note, rows=ROWS_C) for f in frames]
+    images[0].save(path, save_all=True, append_images=images[1:],
+                   duration=every * TICK_MS, loop=0, optimize=True)
+    return path, len(images)
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -274,10 +321,15 @@ if __name__ == "__main__":
     p.add_argument("--note", help="a line under the title")
     p.add_argument("--taught", type=float, metavar="SECONDS",
                    help="Version B: teach each layer for this long, the eye first")
+    p.add_argument("--cells", action="store_true",
+                   help="Version C: Version A built of the cells of spec 011")
     p.add_argument("--truth", action="store_true",
                    help="and put the head on Version A, to ask what the neck learnt")
     a = p.parse_args()
-    if a.taught:
+    if a.cells:
+        path, n = animate_c(a.out, a.seconds, a.seed, a.object, a.every,
+                            a.right or 0.0, a.note, a.moving)
+    elif a.taught:
         path, n = animate_b(a.out, a.seconds, a.seed, a.object, a.every, a.taught,
                             a.right or 0.0, a.note, a.moving, a.truth)
     else:

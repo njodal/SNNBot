@@ -23,8 +23,11 @@ from ..params import (BABBLE_EVERY_MS, CELL_ANGLE_DEG, CORRELATION_MAX_MS,
                       DEG_PER_SPIKE,
                       EFFECTORS, LEAVING_COSTS, ORDER_DELAY_MS, VALUE_HALVES_IN_MS,
                       ELIGIBILITY_MS, EXPLORE, EYE_CELLS, LEARNING_RATE,
-                      HEAD_COMFORT_DEG, HEAD_RANGE_DEG,
-                      NECK_EFFECTORS, PROP_SENSORS,
+                      CONTRACTION_MAX, CONTRACTION_REST,
+                      HEAD_COMFORT_DEG, HEAD_DEG_PER_SPIKE,
+                      HEAD_MAX_RATE_DEG_S, HEAD_RANGE_DEG,
+                      NECK_DEG_PER_SPIKE, NECK_EFFECTORS,
+                      NECK_MAX_RATE_DEG_S, PROP_SENSORS, RECENTRE_KP,
                       STEERING, TICK_MS, WEIGHT_MAX)
 
 LEFT, RIGHT = "left", "right"
@@ -570,7 +573,7 @@ class PostureReflex(LearningReflex):
 
 def proportional_ladder(k=KP, cells=EYE_CELLS, cell_angle=CELL_ANGLE_DEG,
                         per_spike=DEG_PER_SPIKE, cap=MAX_TURN_RATE,
-                        duration_ms=PROPORTIONAL_DURATION_MS):
+                        duration_ms=PROPORTIONAL_DURATION_MS, dead=0):
     """The effectors of [spec 011]: one rung per whole cell of error, cut to `k`.
 
     An effector at `f` Hz turns the head `f × degrees per spike` a second, so the
@@ -579,11 +582,19 @@ def proportional_ladder(k=KP, cells=EYE_CELLS, cell_angle=CELL_ANGLE_DEG,
     nearest millisecond. And Version A caps its rate at what the fastest effector
     of spec 003 manages, so the rungs past that are that effector again.
 
+    A dead zone bends it once more. The law of [Version A of spec 006] acts on
+    what is left of the error once the comfortable range is taken off it, so
+    that the joint starts from nothing at the edge instead of lurching; the
+    diagonals inside the range reaching no wire is not the same thing, and only
+    says when to move. Taking `dead` off `d` here is what puts the subtraction
+    back, and it belongs in the ladder because there is nowhere else in this
+    circuit for arithmetic to live.
+
     Slowest first, so that `ladder[d - 1]` is the rung for `d`.
     """
     rungs = []
     for d in range(1, cells):
-        hz = min(k * d * cell_angle / per_spike, cap / per_spike)
+        hz = min(k * max(d - dead, 1) * cell_angle / per_spike, cap / per_spike)
         period = max(1, round(1000 / hz))
         rungs.append((1000 / period, duration_ms))
     return tuple(rungs)
@@ -605,10 +616,23 @@ class ProportionalReflex:
     """
 
     def __init__(self, reference=None, cells=EYE_CELLS, k=KP, hold_hz=HOLD_RATE_HZ,
-                 window_ms=COINCIDENCE_WINDOW_MS):
+                 window_ms=COINCIDENCE_WINDOW_MS, ladder=None, dead=0, tonic=False,
+                 mirror=False):
         self.cells = cells
-        self.ladder = proportional_ladder(k, cells)
-        self.holds = {i: MemoryCell(hold_hz) for i in range(1, cells + 1)}     # p
+        self.ladder = proportional_ladder(k, cells) if ladder is None else ladder
+        self.dead = dead            # diagonals this near the middle reach nothing
+        # Which side a diagonal reaches is fixed by what the rows are wired to.
+        # Reading the eye, a higher cell than the reference is an object to the
+        # right and the head goes right. Reading the left actuator of a pair, a
+        # higher level is a joint turned left — and a neck answering that has to
+        # go left as well, so its diagonals run the other way round.
+        self.mirror = mirror
+        # A source that says where it is only when it moves needs a memory cell
+        # per level to hold it; one that keeps saying so does not. The eye is the
+        # first kind and the propioceptor of spec 001 the second.
+        self.tonic = tonic
+        self.holds = ({} if tonic else
+                      {i: MemoryCell(hold_hz) for i in range(1, cells + 1)})   # p
         self.reference = {j: MemoryCell(hold_hz) for j in range(1, cells + 1)} # r
         self.table = {(i, j): CoincidenceCell(2, window_ms)
                       for i in range(1, cells + 1) for j in range(1, cells + 1)}
@@ -657,18 +681,32 @@ class ProportionalReflex:
         The cells of the eye are numbered from the left, so an object at a
         higher cell than the reference sits to its right and the head has to
         turn right to catch it.
+
+        A dead zone is the diagonals near the middle reaching nothing, which
+        costs no cell and no rule — only wire that is not there. Zero itself
+        keeps reaching the brake either way: an error of nothing is a stop, and
+        an error too small to be worth answering is not the same thing.
         """
         if d == 0:
             return None
-        return (RIGHT if d > 0 else LEFT), abs(d) - 1
+        if abs(d) <= self.dead:
+            return "hold"           # neither a rung nor the brake: leave it be
+        towards = (RIGHT if d > 0 else LEFT) if not self.mirror else \
+                  (LEFT if d > 0 else RIGHT)
+        return towards, abs(d) - 1
 
     def fired(self, t, eye):
         """Which cells of the table fire now, given what the eye just said."""
         if not self._referred:
             self.refer(t, self._refer_to)
-        p = [i for i, cell in self.holds.items()
-             if cell.update(t, set_it=any(e.address[0] == i and e.p is ON for e in eye),
-                            clear_it=any(e.address[0] == i and e.p is OFF for e in eye))]
+        if self.tonic:
+            p = [e.address[0] for e in eye if e.p is ON]
+        else:
+            p = [i for i, cell in self.holds.items()
+                 if cell.update(t,
+                                set_it=any(e.address[0] == i and e.p is ON for e in eye),
+                                clear_it=any(e.address[0] == i and e.p is OFF
+                                             for e in eye))]
         r = [j for j, cell in self.reference.items() if cell.update(t)]
         return [(i, j) for (i, j), cell in self.table.items()
                 if cell.update(t, [k for k, hit in ((0, i in p), (1, j in r)) if hit])]
@@ -686,9 +724,52 @@ class ProportionalReflex:
     def update(self, t, active_cell, eye, layers):
         fired = self.fired(t, eye)
         for i, j in fired:
-            self.awake = self.wire(i - j)
+            wire = self.wire(i - j)
+            if wire == "hold":              # inside the dead zone: no wire at all
+                continue
+            self.awake = wire
             self.drive(t, layers, self.awake)
         return [Event(t, pair, ON) for pair in fired]
+
+
+def gaze_reflexes(comfort=HEAD_COMFORT_DEG, k_eye=KP, k_neck=RECENTRE_KP,
+                  sensors=PROP_SENSORS, subtract=True):
+    """Version C of [spec 006]: the controller of [spec 011] on each joint.
+
+    Version A in cells, and the same division of labour. The eye's reads the
+    retina and refers to its middle cell. The neck's reads the head joint's
+    propioceptive array and refers to the level that joint rests at, with the
+    diagonals inside the eye's comfortable range wired to nothing — which is the
+    dead zone spec 011 says costs nothing but the wire it does not run.
+
+    Three things differ between the two beyond what they are wired to.
+
+    The eye needs a memory cell per level to hold where the object is, a retina
+    reporting only change; the propioceptor keeps saying where the joint is, so
+    the neck's controller is a whole row of cells smaller.
+
+    Its ladder is built from one joint against the other: the error it answers
+    is an angle of the head and the answer is a rate of the neck, so the rung
+    for `d` levels is `k × d × degrees per level / the neck's degrees per spike`.
+
+    And that ladder is slow enough for its own rungs to matter. An effector
+    stops when its duration runs out, so a rung whose period is longer than the
+    duration emits once and waits — the slow end of the ladder would be a lie.
+    The neck's rungs run for three periods of the slowest of them.
+    """
+    level_deg = 2 * HEAD_RANGE_DEG / sensors            # 9, as one cell of the eye
+    at_rest = CONTRACTION_REST // (CONTRACTION_MAX // sensors) + 1
+    slowest = 1000 / (k_neck * level_deg / NECK_DEG_PER_SPIKE)
+    eye = ProportionalReflex(
+        ladder=proportional_ladder(k_eye, EYE_CELLS, CELL_ANGLE_DEG,
+                                   HEAD_DEG_PER_SPIKE, HEAD_MAX_RATE_DEG_S))
+    neck = ProportionalReflex(
+        reference=at_rest, cells=sensors, tonic=True, mirror=True,
+        dead=int(comfort / level_deg),
+        ladder=proportional_ladder(k_neck, sensors, level_deg, NECK_DEG_PER_SPIKE,
+                                   NECK_MAX_RATE_DEG_S, round(3 * slowest),
+                                   dead=int(comfort / level_deg) if subtract else 0))
+    return eye, neck
 
 
 class GainReflex(ProportionalReflex):

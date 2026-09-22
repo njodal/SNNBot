@@ -8,7 +8,8 @@ from .body.vehicle2 import Vehicle2
 from .clock import Clock
 from .control import GazeController, ProportionalController
 from .layers.sensory import (CorrelationReflex, GainReflex, LearningReflex,
-                             PostureReflex, ProportionalReflex, Reflex)
+                             PostureReflex, ProportionalReflex, Reflex,
+                             gaze_reflexes)
 
 from .recorder import Recorder
 from .params import HEAD_EFFECTORS
@@ -83,6 +84,21 @@ def main():
     p.add_argument("--moving", action="store_true",
                    help="the object waits a second, then slides left for another")
     args = p.parse_args()
+
+    if args.neck and args.proportional:
+        # Version C of spec 006: Version A of it, built of the cells of spec 011.
+        eye_reflex, neck_reflex = gaze_reflexes()
+        path = experiment_path(args.object) if args.moving else None
+        vehicle, rec = run(args.seconds, args.seed, args.object, path=path,
+                           eye_reflex=eye_reflex, neck_reflex=neck_reflex, vor=True)
+        print(f"{args.seconds:g} s of a P controller in cells on each joint, "
+              f"object at {args.object:g} degrees\n")
+        for source, n in sorted(rec.counts().items()):
+            print(f"  {n:6d}  {source}")
+        print(f"\n  eye ended at {vehicle.head_deg:+.1f} degrees, "
+              f"neck at {vehicle.neck_deg:+.1f}, gaze at {vehicle.gaze_deg:+.1f}, "
+              f"object seen by cell {vehicle.retina.busy_cell()}")
+        return
 
     vehicle_cls = Vehicle2 if args.neck else Vehicle1
     controller = (GazeController() if args.neck
