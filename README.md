@@ -47,4 +47,8 @@ Design specifications live in [`spec/`](spec/).
 - [012 — A joint primitive](spec/012-joint-primitive.md): that controller cut into
   one copy per actuator, built with no number about a joint, the same on every
   joint of every vehicle — and left to find its own ladder.
+- [013 — A neuromorphic memory](spec/013-neuromorphic-memory.md): a window that
+  sees three positions of a tape at a time and never knows which three, and the
+  rows of cells that turn a run of such views, plus the movements between them,
+  into one map of the whole tape.
 

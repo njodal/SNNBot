@@ -23,3 +23,4 @@ Design specifications for SNNBot.
 | 010 | [Cells](010-cells.md)                                        | draft  |
 | 011 | [A neuromorphic P controller](011-neuromorphic-p-controller.md) | draft  |
 | 012 | [A joint primitive](012-joint-primitive.md)                 | draft  |
+| 013 | [A neuromorphic memory](013-neuromorphic-memory.md)          | draft  |

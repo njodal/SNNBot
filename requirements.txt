@@ -2,4 +2,4 @@
 pytest        # the acceptance criteria of the specs
 # numpy       # for the correlations, when the sensory layer arrives
 # pygame      # for the live view
-# matplotlib  # for the rasters
+# matplotlib  # for the rasters, and for the figures of docs/figures
