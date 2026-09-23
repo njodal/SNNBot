@@ -1,20 +1,20 @@
-# Memoria Neuromórfica
+# Neuromorphic Memory
 
-## Nivel 1: Retina
-- 3 sensores de movimiento, cada uno dispara un pulso al detectar cambio en su punto.
-- 2 sensores adicionales: uno para movimiento a la izquierda, otro para la derecha.
+## Level 1: Retina
+- 3 motion sensors, each fires a pulse when detecting change at its point.
+- 2 additional sensors: one for leftward motion, one for rightward.
 
-## Nivel 2: Capa AND (patrones)
-- Neuronas conectadas al azar con todos los sensores.
-- Aprendizaje por poda hebbiana: las sinapsis que coinciden en el tiempo se fortalecen; las que no coinciden desaparecen.
-- Ejemplo: una neurona reconoce que los sensores 1 y 3 se prenden juntos; otra reconoce 2 y 3.
+## Level 2: AND Layer (patterns)
+- Neurons randomly connected to all sensors.
+- Hebbian pruning learning: synapses that coincide in time strengthen; those that don't disappear.
+- Example: one neuron recognizes that sensors 1 and 3 turn on together; another recognizes 2 and 3.
 
-## Nivel 3: Capa de secuencia temporal
-- Se conecta a las salidas AND ya estabilizadas (no arranca densa).
-- Cada neurona aprende el orden: patrón A precede a patrón B dentro de una ventana de tiempo.
-- También recibe los sensores de dirección (izquierda/derecha) para registrar la causa de cada transición.
-- Cada arista del grafo tiene dos etiquetas: orden temporal y causa del movimiento.
+## Level 3: Temporal sequence layer
+- Connects to the already stabilized AND outputs (doesn't start dense).
+- Each neuron learns the order: pattern A precedes pattern B within a time window.
+- Also receives direction sensors (left/right) to record the cause of each transition.
+- Each edge of the graph has two labels: temporal order and cause of movement.
 
-## Nivel 4: Recuerdo (salida)
-- Una neurona final que codifica la cadena completa: secuencia de patrones + causa de cada transición.
-- Memoria episódica: no solo qué pasó, sino por qué pasó.
+## Level 4: Recall (output)
+- A final neuron that encodes the complete chain: sequence of patterns + cause of each transition.
+- Episodic memory: not just what happened, but why it happened.
