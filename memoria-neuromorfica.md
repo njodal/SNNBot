@@ -15,6 +15,7 @@
 - Each neuron learns the order: pattern A precedes pattern B within a time window.
 - It also receives the direction sensors (left/right) to record the cause of each transition.
 - Each edge of the graph has two labels: temporal order and cause of the movement.
+- Note: since it also receives information about whether the retina itself moved, it eliminates all sequences that could be caused by the floor moving rather than the retina.
 
 ## Level 4: Recall (output)
 - A final neuron that encodes the full chain: sequence of patterns + cause of each transition.
