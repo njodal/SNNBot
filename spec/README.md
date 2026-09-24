@@ -24,3 +24,4 @@ Design specifications for SNNBot.
 | 011 | [A neuromorphic P controller](011-neuromorphic-p-controller.md) | draft  |
 | 012 | [A joint primitive](012-joint-primitive.md)                 | draft  |
 | 013 | [A neuromorphic memory](013-neuromorphic-memory.md)          | draft  |
+| 014 | [A neuromorphic episodic memory](014-neuromorphic-episodic-memory.md) | draft  |

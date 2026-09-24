@@ -51,4 +51,8 @@ Design specifications live in [`spec/`](spec/).
   sees three positions of a tape at a time and never knows which three, and the
   rows of cells that turn a run of such views, plus the movements between them,
   into one map of the whole tape.
+- [014 — A neuromorphic episodic memory](spec/014-neuromorphic-episodic-memory.md):
+  a memory fed by sensors alone — a spatial level that learns which sensors fire
+  together, a temporal level that learns which pattern follows which and what
+  movement caused it, and a recall that answers a pattern with the next one.
 

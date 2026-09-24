@@ -1,24 +1,28 @@
-# Neuromorphic Memory
+# 014 — A neuromorphic episodic memory
+
+- **Status:** draft
+- **Date:** 2026-09-24
+- **Supersedes / Superseded by:** —
 
 The goal is to have a memory who store info just from sensory info and later can be recalled just using SNN.
 
 It has three levels:
 
-1. Sensory. This is the sensors defined in the Neuromorphic Sensors spec.
+1. Sensory. This is the sensors defined in [spec 001](001-neuromorphic-sensors.md).
 2. Spatial. Receive spike from sensors and stablish the concurrent patterns
 3. Temporal. Groups the spatial layer spikes in sequences (what spatial pattern comes after another)
 
 The recall function consist on ingesting an spatial pattern (not necessary to be perceived) and takes the next pattern the memory responds (can be more than one) as the answer.
 
 ## Level 1: Neuromorphic sensors
-This are the sensors that feed the memory. Usually a combination of external sensors like the retina used in Vehicle1 and proprioceptive ones.
+This are the sensors that feed the memory. Usually a combination of external sensors like the retina used in Vehicle 1 ([spec 005](005-vehicle-1.md)) and proprioceptive ones.
 Notes:
 - the proprioceptive sensor are needed to stablih the causal relations in the Temporal layer 
-A neuromorphic sensor like a retina used in Vehicle1.
+A neuromorphic sensor like a retina used in Vehicle 1 ([spec 005](005-vehicle-1.md)).
 
 ## Level 2: Spatial recognition (patterns)
 Receive input from Level 1 and establish connections among the sensors that fires together.
-- Use concurrent neurons
+- Use coincidence cells ([spec 010](010-cells.md))
 - Neurons randomly connected to all sensors
 - Hebbian pruning learning: synapses that coincide in time are strengthened; those that don't coincide disappear
 - Example: one neuron recognizes that sensors 1 and 3 turn on together; another recognizes 2 and 3
@@ -26,7 +30,7 @@ Receive input from Level 1 and establish connections among the sensors that fire
 
 ## Level 3: Temporal sequence layer
 Receive input from level 2 and establish connections among signal who come one after another.
-- Use predecessor neurons
+- Use correlation cells ([spec 010](010-cells.md))
 - Connects to the already-stabilized spatial recognition outputs (does not start dense).
 - Each neuron learns the order: pattern A precedes pattern B within a time window.
 - It also receives the direction sensors (left/right) to record the cause of each transition.
@@ -41,7 +45,7 @@ To be defined. The idea is to have an alternative path to level 2 (instead of 's
 # Example 1: simplest one
 The simplest example is a world composed of tiles aligned horinzontally which each one have a number (0 to 9), a retina that can sense one tile per time and an actuator that can move the retina one tile to left or right.
 
-(AI: put image illustrating the example)
+![A row of numbered tiles, the retina on one of them, and the twelve sensors](../docs/images/tiles_retina.png)
 
 The retina moves randomly left or right and the goal is the memory build a map of the tiles.
 
@@ -54,9 +58,9 @@ The retina moves randomly left or right and the goal is the memory build a map o
 Not necessary in this case given just one sensor from the retina fires at a given time.
 
 ## Level 3: temporal sequence
-Establish the causal relationship: seeing tile X, move right, seeing tile Y. This can be done with two predecessor neurons, the first one record the starting spatial pattern and the subsequent move ('tile X, move right') and the second one takes the output of the last one (predecessor connection) with the next pattern ('tile Y').
+Establish the causal relationship: seeing tile X, move right, seeing tile Y. This can be done with two correlation cells, the first one record the starting spatial pattern and the subsequent move ('tile X, move right') and the second one takes the output of the last one (predecessor connection) with the next pattern ('tile Y').
 
-(AI: image of this two neurons)
+![The two correlation cells that record one step: a tile, a move, the next tile](../docs/images/episodic_two_cells.png)
 
 # Example 2:
 To be defined.

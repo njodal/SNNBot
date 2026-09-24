@@ -16,5 +16,7 @@ says, they do not run anything.
 | figure | spec |
 |--------|------|
 | [`tape_retina.py`](tape_retina.py) → `images/tape_retina.png` | [013 — A neuromorphic memory](../../spec/013-neuromorphic-memory.md) |
+| [`tiles_retina.py`](tiles_retina.py) → `images/tiles_retina.png` | [014 — A neuromorphic episodic memory](../../spec/014-neuromorphic-episodic-memory.md) |
+| [`episodic_two_cells.py`](episodic_two_cells.py) → `images/episodic_two_cells.png` | [014 — A neuromorphic episodic memory](../../spec/014-neuromorphic-episodic-memory.md) |
 
 The older images were drawn by hand and have no script here.
