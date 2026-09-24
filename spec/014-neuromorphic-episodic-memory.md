@@ -9,16 +9,16 @@ The goal is to have a memory who store info just from sensory info and later can
 It has three levels:
 
 1. Sensory. This is the sensors defined in [spec 001](001-neuromorphic-sensors.md).
-2. Spatial. Receive spike from sensors and stablish the concurrent patterns
+2. Spatial. Receive spikes from sensors and stablish the concurrent patterns
 3. Temporal. Groups the spatial layer spikes in sequences (what spatial pattern comes after another)
 
 The recall function consist on ingesting an spatial pattern (not necessary to be perceived) and takes the next pattern the memory responds (can be more than one) as the answer.
 
 ## Level 1: Neuromorphic sensors
-This are the sensors that feed the memory. Usually a combination of external sensors like the retina used in Vehicle 1 ([spec 005](005-vehicle-1.md)) and proprioceptive ones.
+These are the sensors that feed the memory. Usually a combination of external sensors like the retina used in Vehicle 1 ([spec 005](005-vehicle-1.md)) and proprioceptive ones.
+
 Notes:
 - the proprioceptive sensor are needed to stablih the causal relations in the Temporal layer 
-A neuromorphic sensor like a retina used in Vehicle 1 ([spec 005](005-vehicle-1.md)).
 
 ## Level 2: Spatial recognition (patterns)
 Receive input from Level 1 and establish connections among the sensors that fires together.
