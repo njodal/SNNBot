@@ -113,8 +113,19 @@ The same spikes arrive in both cases and the same number of them. Only their fal
 
 *Together* has to mean within a **window**. Two tonic sources at the same rate fire out of step with each other, and a cell asking for the very same millisecond would wait for ever; the window is one period of the sources, 20 ms at the 50 Hz of a propioceptive array, and each spike is spent once, so that two sources at 50 Hz make the cell fire at 50 Hz and not at every pairing of an old spike with a new one. [Spec 011](011-neuromorphic-p-controller.md) is where this came up, a table of these being what it uses to subtract one place code from another.
 
+### Sequence Cell
+This cell has its inputs in a named order — `i1`, `i2`, … `in` — and fires when they arrive in that order, each within a window of the one before.
+
+![A sequence cell, in order and out of it](../docs/images/sequence_cell.png)
+
+The same spikes arrive in both cases. Only their order makes any difference, and one out of place breaks the sequence: the rest of it then counts for nothing until `i1` starts it again.
+
+With two inputs this is the correlation cell, and with more it is a chain of those folded into one — the cell for `(a, b, c)` fires exactly when the pair `(a, b)` fed into the pair `(·, c)` would have, with one window per step in place of one per cell. A single neuron can do this: Branco, Clark and Häusser (2010) found cortical cells that tell one order of arrival along a dendrite from another. [Spec 014](014-neuromorphic-episodic-memory.md) is where it came up, one of these being what keeps a view, a move and the view that followed.
+
+While every input but the last has arrived in order and the window for the last is still open, the cell is **primed**: it is waiting for one thing, and which thing that is can be read. Spec 014 uses that to recall what came next without the body moving.
+
 ## The cells there are so far
-Six kinds, with less in common than one might expect.
+Seven kinds, with less in common than one might expect.
 
 | | inputs | what it does |
 |---|--------|--------------|
@@ -124,6 +135,7 @@ Six kinds, with less in common than one might expect.
 | **Delay** ([Version C](005-vehicle-1.md)) | one | the same spike again, later. On a successor it makes an order, on a predecessor a coincidence |
 | **Memory** ([Version E](005-vehicle-1.md)) | set, clear | fires all the while between the one and the other. The only tonic thing in a vehicle made of changes |
 | **Coincidence** ([Version F](005-vehicle-1.md)) | many | fires when enough of them arrive within a window of each other. A table of these is a subtraction |
+| **Sequence** ([spec 014](014-neuromorphic-episodic-memory.md)) | `i1` … `in` | fires when they arrive in that order, each within a window of the one before. The correlation cell is the case of two; more is a chain of those folded into one |
 
 ## What they have not got
 No membrane, no threshold, nothing accumulating. Not one of the cells built so far integrates anything: each is a small rule over the spikes at its inputs, and it either fires or does not.

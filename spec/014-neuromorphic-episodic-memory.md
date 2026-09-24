@@ -36,7 +36,7 @@ Receive input from Level 1 and establish connections among the sensors that fire
 
 ### Level 3: Temporal sequence layer
 Receive input from level 2 and establish connections among signal who come one after another.
-- Use correlation cells ([spec 010](010-cells.md))
+- Use sequence cells ([spec 010](010-cells.md)): one per transition, its inputs the pattern, the move and the pattern that followed, in that order
 - Connects to the already-stabilized spatial recognition outputs (does not start dense).
 - Each neuron learns the order: pattern A precedes pattern B within a time window.
 - It also receives the direction sensors (left/right) to record the cause of each transition.
@@ -64,11 +64,13 @@ The retina moves randomly left or right and the goal is the memory build a map o
 Not necessary in this case given just one sensor from the retina fires at a given time.
 
 ### Level 3: temporal sequence
-Establish the causal relationship: seeing tile X, move right, seeing tile Y. This can be done with two correlation cells, the first one record the starting spatial pattern and the subsequent move ('tile X, move right') and the second one takes the output of the last one (predecessor connection) with the next pattern ('tile Y').
+Establish the causal relationship: seeing tile X, move right, seeing tile Y. This is one sequence cell of [spec 010](010-cells.md) with three inputs, in that order: the starting pattern ('tile X'), the move ('move right') and the pattern that followed ('tile Y'). It fires on the last of them, and what it names is the whole step.
 
-![The two correlation cells that record one step: a tile, a move, the next tile](../docs/images/episodic_two_cells.png)
+![The sequence cell that records one step: a tile, a move, the next tile](../docs/images/episodic_sequence_cell.png)
 
-**Building the cells.** A practical way to grow this level is to make the cells as the episodes come. Keep the last three events — a reading, a move, a reading — and watch whether any cell of the level fired on them. If one did, the chain for that step already exists. If none did, add the two correlation cells for it: one on the reading and the move, one on that cell and the next reading.
+It was first drawn as two correlation cells, the first on the pattern and the move, the second on that cell and the next pattern. The sequence cell is those two folded into one: nothing is lost but the spike between them, and what that spike stood for — *tile X, then moved right, waiting for what comes* — is the cell being primed, which is what recall will read.
+
+**Building the cells.** A practical way to grow this level is to make the cells as the episodes come. Keep the last three events — a reading, a move, a reading — and watch whether any cell of the level fired on them. If one did, the chain for that step already exists. If none did, add the sequence cell for it, its three inputs being those three events.
 
 This is not very neuromorphic — cells appearing on demand is a bookkeeping trick, not a rule of a network. A more biological version is not hard to picture: start with many cells wired at random, as level 2 does, and let the ones that never fire in order fall away.
 

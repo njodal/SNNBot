@@ -7,6 +7,10 @@ the predecessor it makes a coincidence out of two things that did not.
 
 The memory cell, which holds that something happened until it is undone, and
 the coincidence cell, which fires when enough of its inputs arrive together.
+
+The sequence cell, which fires when its inputs arrive in the order it names,
+each within a window of the one before — a chain of correlation cells folded
+into one.
 """
 
 from ..params import REFRACTORY_MS
@@ -112,3 +116,59 @@ class CoincidenceCell:
         self._pending = [None] * len(self._pending)
         self._last_fired = t
         return True
+
+
+class SequenceCell:
+    """Fires when its inputs arrive in order, each within a window of the last.
+
+    Inputs `0 .. n-1` have to come in that order, and each has to arrive
+    between `low` and `high` ms after the one before: closer than `low` is the
+    same moment, not an order, and further than `high` is two things that have
+    nothing to do with each other. Anything out of order breaks the sequence,
+    and input `0` starts it again from the beginning whenever it comes.
+
+    With two inputs this is the correlation cell of spec 010, and with more it
+    is a chain of those folded into one: the cell for `(a, b, c)` fires exactly
+    when the pair `(a, b)` fed into the pair `(·, c)` would have.
+
+    `primed` is true while every input but the last has arrived in order and
+    the window for the last is still open — the cell is waiting for one thing.
+    Spec 014 reads that to recall what came next.
+    """
+
+    def __init__(self, inputs, low_ms, high_ms):
+        self.n = inputs
+        self.low, self.high = low_ms, high_ms
+        self._at = 0                    # which input it is waiting for
+        self._last = None               # when the one before that arrived
+
+    def reset(self):
+        """Waiting for the first input, as before anything arrived."""
+        self._at, self._last = 0, None
+
+    def _open(self, t):
+        return self._last is not None and t - self._last <= self.high
+
+    @property
+    def primed(self):
+        return self._at == self.n - 1
+
+    def update(self, t, arrived=()):
+        """Whether it fires now, having been given which inputs just did."""
+        if self._at > 0 and not self._open(t):
+            self.reset()                # waited too long for the next one
+        for k in sorted(arrived):
+            if k == 0:
+                self._at, self._last = 1, t
+            elif k != self._at:
+                self.reset()            # out of order: the sequence is broken
+            elif t - self._last < self.low:
+                continue                # the same moment, not an order
+            elif k == self.n - 1:
+                self.reset()
+                return True
+            else:
+                self._at, self._last = k + 1, t
+        if self._at > 0 and not self._open(t):
+            self.reset()
+        return False
