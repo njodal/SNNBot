@@ -68,6 +68,8 @@ Establish the causal relationship: seeing tile X, move right, seeing tile Y. Thi
 
 ![The two correlation cells that record one step: a tile, a move, the next tile](../docs/images/episodic_two_cells.png)
 
+(AI: reescribe esto: una forma practica de construir este nivel es ir creando las correlation cells on the flight: tener en memoria los ultimos tres eventos (retina, movimiento, retina) y ver si se disparo alguna neurona en este nivel, sino se disparo crear entonces las dos neuronas correspondientes. Nota: esto no es demasiado neuromorfico, pero no es dificil de imaginar un procedimiento mas biologico (ej: crear muchas conexecions e ir haciendo podas)
+
 ## Example 2:
 To be defined.
 (AI: do not touch)
