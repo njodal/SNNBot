@@ -4,6 +4,11 @@
 - **Date:** 2026-09-24
 - **Supersedes / Superseded by:** —
 
+## Context
+*Episodic* is Tulving's word for the memory of what happened: not a fact on its own, but a sequence lived from where the body was — *I saw this, I moved that way, then I saw that*. It is set against *semantic* memory, which keeps the fact and drops the episode it was learned in. Two things follow. The movement is part of what is stored, so every transition carries its cause. And recalling is replaying: given one point of a sequence, the memory gives back what came next.
+
+That is what this spec builds, and how it differs from [spec 013](013-neuromorphic-memory.md): that one assembles a map of what is where; this one keeps the episodes, and leaves the map implicit in the chains of transitions.
+
 The goal is to have a memory who store info just from sensory info and later can be recalled just using SNN.
 
 It has three levels:
