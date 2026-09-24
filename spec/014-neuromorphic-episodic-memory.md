@@ -68,7 +68,9 @@ Establish the causal relationship: seeing tile X, move right, seeing tile Y. Thi
 
 ![The two correlation cells that record one step: a tile, a move, the next tile](../docs/images/episodic_two_cells.png)
 
-(AI: reescribe esto: una forma practica de construir este nivel es ir creando las correlation cells on the flight: tener en memoria los ultimos tres eventos (retina, movimiento, retina) y ver si se disparo alguna neurona en este nivel, sino se disparo crear entonces las dos neuronas correspondientes. Nota: esto no es demasiado neuromorfico, pero no es dificil de imaginar un procedimiento mas biologico (ej: crear muchas conexecions e ir haciendo podas)
+**Building the cells.** A practical way to grow this level is to make the cells as the episodes come. Keep the last three events — a reading, a move, a reading — and watch whether any cell of the level fired on them. If one did, the chain for that step already exists. If none did, add the two correlation cells for it: one on the reading and the move, one on that cell and the next reading.
+
+This is not very neuromorphic — cells appearing on demand is a bookkeeping trick, not a rule of a network. A more biological version is not hard to picture: start with many cells wired at random, as level 2 does, and let the ones that never fire in order fall away.
 
 ## Example 2:
 To be defined.
