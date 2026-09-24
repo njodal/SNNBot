@@ -36,12 +36,50 @@ Receive input from level 2 and establish connections among signal who come one a
 ## Level 4: Recall (output)
 To be defined. The idea is to have an alternative path to level 2 (instead of 'seeing' a pattern, 'imaging' one) and pick the next patterns in the sequence.
 
-- A final neuron that encodes the full chain: sequence of patterns + cause of each transition.
 - Episodic memory: not only what happened, but why it happened.
 
-# Example
-## Level 1: Retina
+# Example 1: simplest one
+The simplest example is a world composed of tiles aligned horinzontally which each one have a number (0 to 9), a retina that can sense one tile per time and an actuator that can move the retina one tile to left or right.
+
+(AI: put image illustrating the example)
+
+The retina moves randomly left or right and the goal is the memory build a map of the tiles.
+
+## Level 1: Sensors
+
+- Retina. Ten sensors where only one fires at each time indicating which is the number in the tile
+- Proprioceptive. Two sensor, to signal where the retina have moved (left or right)
+
+## Level 2: spatial pattern
+Not necessary in this case given just one sensor from the retina fires at a given time.
+
+## Level 3: temporal sequence
+Establish the causal relationship: seeing tile X, move right, seeing tile Y. This can be done with two predecessor neurons, the first one record the starting spatial pattern and the subsequent move ('tile X, move right') and the second one takes the output of the last one (predecessor connection) with the next pattern ('tile Y').
+
+(AI: image of this two neurons)
+
+# Example 2:
+To be defined.
+(AI: do not touch)
+
+## Level 1: Sensors
 
 - 3 motion sensors, each fires a pulse when it detects a change at its point.
 - 2 additional sensors: one for leftward motion, one for rightward motion.
 
+## Level 2: Spatial recognition (patterns)
+Receive input from Level 1 and establish connections among the sensors that fires together.
+- Use concurrent neurons
+- Neurons randomly connected to all sensors
+- Hebbian pruning learning: synapses that coincide in time are strengthened; those that don't coincide disappear
+- Example: one neuron recognizes that sensors 1 and 3 turn on together; another recognizes 2 and 3
+- This is spatial recognition: everything fires at once, in the same place
+
+## Level 3: Temporal sequence layer
+Receive input from level 2 and establish connections among signal who come one after another.
+- Use predecessor neurons
+- Connects to the already-stabilized spatial recognition outputs (does not start dense).
+- Each neuron learns the order: pattern A precedes pattern B within a time window.
+- It also receives the direction sensors (left/right) to record the cause of each transition.
+- Each edge of the graph has two labels: temporal order and cause of the movement.
+- Note: since it also receives information about whether the retina itself moved, it eliminates all sequences that could be caused by the floor 
